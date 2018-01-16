@@ -1,9 +1,28 @@
 {
   "name": "computed-values",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Computed values",
-  "main": "index.js",
+  "main": "lib/index.js",
   "repository": "https://github.com/szagi3891/computed-values",
   "author": "Grzegorz Szeliga <szeligagrzegorz@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "build": "yarn run flow && yarn run test && babel src/ -d lib && flow-copy-source src lib",
+    "flow": "flow status",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "flow-bin": "^0.63.1",
+    "flow-bin-ci": "^0.1.1",
+    "flow-copy-source": "^1.2.1",
+    "flow-typed": "^2.2.3",
+    "jest": "^22.1.1"
+  },
+  "dependencies": {
+    "react": "^16.2.0"
+  }
 }
