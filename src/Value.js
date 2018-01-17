@@ -3,7 +3,7 @@
 import { ValueSubscription } from './ValueSubscription';
 import { ValueComputed } from './ValueComputed';
 import { transaction } from './transaction';
-console.info('TESTTTTTTT');
+console.info('TESTTTTTTT 2222');
 export class Value<T> {
     _value: T;
     _subscription: ValueSubscription;

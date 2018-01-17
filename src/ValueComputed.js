@@ -4,7 +4,7 @@ import { ValueSubscription } from './ValueSubscription';
 import { ValueConnection } from './ValueConnection';
 import { pushToRefresh } from './transaction';
 import { Value } from './Value';
-//import { ValueLayzy } from './ValueLayzy';
+import { ValueLayzy } from './ValueLayzy';
 
 export class ValueComputed<T> {
     _getSubscription: () => ValueSubscription;
@@ -15,20 +15,20 @@ export class ValueComputed<T> {
         this._getValue = getValue;
     }
 
-    /*
     map<M>(mapFun: (value: T) => M): ValueComputed<M> {
 
         type InnerType = {
-            result: Val<M>,
+            result: ValueLayzy<M>,
             parent: ValueConnection<T>,
             subscription: ValueSubscription,
         };
 
-        const inner: ValueLayzy<InnerType> = new Val(
-            (): InnerType => {
-                const result = new Val(
-                    () => mapFun(this._getValue())
-                );
+        const inner: ValueLayzy<InnerType> = new ValueLayzy({
+            create: () => {
+                const result = new ValueLayzy({
+                    create: () => mapFun(this._getValue()),
+                    drop: null
+                });
 
                 const subscription = new ValueSubscription();
 
@@ -43,87 +43,21 @@ export class ValueComputed<T> {
                     subscription
                 };
             },
-            (inner: InnerType) => {
+            drop: (inner: InnerType) => {
                 inner.parent.disconnect();
             }
-        );
+        });
 
         inner.onInicjalized((innerValue: InnerType) => {
-            innerValue.onDown(() => {
+            innerValue.subscription.onDown(() => {
                 inner.clear();
             });
         });
 
        return new ValueComputed(
             (): ValueSubscription => inner.getValue().subscription,
-            getResult: (): M => inner.getValue().result.getValue()
+            (): M => inner.getValue().result.getValue()
        );
-    }
-    */
-
-    map<M>(mapFun: (value: T) => M): ValueComputed<M> {
-        type ConnectionDataType = {
-            parent: ValueConnection<T>,
-            result: null | { value: M }
-        };
-
-        let connection: null | ConnectionDataType = null;
-
-        const subscription = new ValueSubscription();
-        
-        subscription.onDown(() => {
-            if (connection !== null) {
-                connection.parent.disconnect();
-                connection = null;
-            } else {
-                throw Error('Map - disconnect - Incorrect code branch');
-            }
-        });
-
-        const clearCache = () => {
-            if (connection) {
-                connection.result = null;
-            } else {
-                throw Error('Map - clearCache - Incorrect code branch')
-            }
-        };
-
-        const notify = () => {
-            clearCache();
-            subscription.notify();
-        };
-
-        const getConnection = (): ConnectionDataType => {
-            if (connection !== null) {
-                return connection;
-            }
-
-            const newConnect = this.bind(notify);
-
-            connection = {
-                parent: newConnect,
-                result: null
-            };
-
-            return connection;
-        };
-
-        const getResult = (): M => {
-            const connection = getConnection();
-
-            if (connection.result === null) {
-                const result = mapFun(this._getValue());
-                connection.result = { value: result };
-                return result;
-            } else {
-                return connection.result.value;
-            }
-        };
-
-        return new ValueComputed(
-            () => subscription,
-            getResult
-        );
     }
 
     switchMap<K>(swithFunc: ((value: T) => ValueComputed<K>)): ValueComputed<K> {

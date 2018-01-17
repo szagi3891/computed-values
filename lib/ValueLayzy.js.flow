@@ -1,11 +1,11 @@
 //@flow
 
 type CallbacksType<G> = {
-    createValue: () => G,
-    onDown: null | ((val:G) => void)
+    create: () => G,
+    drop: null | ((val:G) => void)
 };
 
-class Val<G> {
+export class ValueLayzy<G> {
     _callbacks: CallbacksType<G>;
     _value: null | { value: G};
     _onInicjalized: Array<(value: G) => void>;
@@ -22,8 +22,7 @@ class Val<G> {
             return val.value;
         }
 
-        const createValue = this._callbacks.createValue;
-        const newValue: G = createValue();
+        const newValue = this._callbacks.create();
 
         for (const callbackInit of this._onInicjalized) {
             callbackInit(newValue);
@@ -35,10 +34,10 @@ class Val<G> {
 
     clear() {
         if (this._value) {
-            const onDown = this._callbacks.onDown;
+            const drop = this._callbacks.drop;
 
-            if (onDown) {
-                onDown(this._value.value);
+            if (drop) {
+                drop(this._value.value);
             }
         }
         this._value = null;
