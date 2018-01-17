@@ -4,15 +4,62 @@ import { ValueSubscription } from './ValueSubscription';
 import { ValueConnection } from './ValueConnection';
 import { pushToRefresh } from './transaction';
 import { Value } from './Value';
+//import { ValueLayzy } from './ValueLayzy';
 
 export class ValueComputed<T> {
-    _subscription: ValueSubscription;
+    _getSubscription: () => ValueSubscription;
     _getValue: () => T;
 
-    constructor(subscription: ValueSubscription, getValue: () => T) {
-        this._subscription = subscription;
+    constructor(getSubscription: () => ValueSubscription, getValue: () => T) {
+        this._getSubscription = getSubscription;
         this._getValue = getValue;
     }
+
+    /*
+    map<M>(mapFun: (value: T) => M): ValueComputed<M> {
+
+        type InnerType = {
+            result: Val<M>,
+            parent: ValueConnection<T>,
+            subscription: ValueSubscription,
+        };
+
+        const inner: ValueLayzy<InnerType> = new Val(
+            (): InnerType => {
+                const result = new Val(
+                    () => mapFun(this._getValue())
+                );
+
+                const subscription = new ValueSubscription();
+
+                const parent = this.bind(() => {
+                    result.clear();
+                    subscription.notify();
+                });
+
+                return {
+                    result,
+                    parent,
+                    subscription
+                };
+            },
+            (inner: InnerType) => {
+                inner.parent.disconnect();
+            }
+        );
+
+        inner.onInicjalized((innerValue: InnerType) => {
+            innerValue.onDown(() => {
+                inner.clear();
+            });
+        });
+
+       return new ValueComputed(
+            (): ValueSubscription => inner.getValue().subscription,
+            getResult: (): M => inner.getValue().result.getValue()
+       );
+    }
+    */
 
     map<M>(mapFun: (value: T) => M): ValueComputed<M> {
         type ConnectionDataType = {
@@ -22,7 +69,9 @@ export class ValueComputed<T> {
 
         let connection: null | ConnectionDataType = null;
 
-        const subscription = new ValueSubscription(() => {
+        const subscription = new ValueSubscription();
+        
+        subscription.onDown(() => {
             if (connection !== null) {
                 connection.parent.disconnect();
                 connection = null;
@@ -72,7 +121,7 @@ export class ValueComputed<T> {
         };
 
         return new ValueComputed(
-            subscription,
+            () => subscription,
             getResult
         );
     }
@@ -95,7 +144,8 @@ export class ValueComputed<T> {
             }
         };
 
-        const subscription = new ValueSubscription(clearConnection);
+        const subscription = new ValueSubscription();
+        subscription.onDown(clearConnection);
 
         const getTargetBySelf = (self: ValueConnection<T>): ValueConnection<K> => {
             const targetComputed = swithFunc(self.getValue());
@@ -141,7 +191,7 @@ export class ValueComputed<T> {
         };
 
         return new ValueComputed(
-            subscription,
+            () => subscription,
             getResult
         );
     }
@@ -164,7 +214,8 @@ export class ValueComputed<T> {
             }
         };
 
-        const subscription = new ValueSubscription(clearConnection);
+        const subscription = new ValueSubscription();
+        subscription.onDown(clearConnection);
 
         const notify = () => {
             if (connection !== null) {
@@ -197,7 +248,7 @@ export class ValueComputed<T> {
         };
 
         return new ValueComputed(
-            subscription,
+            () => subscription,
             getResult
         );
     }
@@ -209,7 +260,7 @@ export class ValueComputed<T> {
     }
 
     bind(notify: () => void): ValueConnection<T> {
-        const disconnect = this._subscription.bind(notify);
+        const disconnect = this._getSubscription().bind(notify);
         return new ValueConnection(
             () => this._getValue(),
             disconnect
@@ -217,7 +268,7 @@ export class ValueComputed<T> {
     }
 
     connect(onRefresh: (() => void) | null): ValueConnection<T> {
-        const disconnect = this._subscription.bind(
+        const disconnect = this._getSubscription().bind(
             () => {
                 if (onRefresh) {
                     pushToRefresh(onRefresh);

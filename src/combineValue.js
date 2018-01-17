@@ -19,7 +19,9 @@ export const combineValue = <A, B, R>(
 
     let connection: null | ConnectionDataType = null;
 
-    const subscription = new ValueSubscription(() => {
+    const subscription = new ValueSubscription();
+
+    subscription.onDown(() => {
         if (connection !== null) {
             connection.a.disconnect();
             connection.b.disconnect();
@@ -72,7 +74,7 @@ export const combineValue = <A, B, R>(
     };
 
     return new ValueComputed(
-        subscription,
+        () => subscription,
         getResult
     );
 };
@@ -92,7 +94,9 @@ export const combineValueArr = <A,R>(
 
     let connection: null | ConnectionDataType = null;
 
-    const subscription = new ValueSubscription(() => {
+    const subscription = new ValueSubscription();
+
+    subscription.onDown(() => {
         if (connection !== null) {
             for (const connectionItem of connection.arr) {
                 connectionItem.disconnect();
@@ -147,7 +151,7 @@ export const combineValueArr = <A,R>(
     };
 
     return new ValueComputed(
-        subscription,
+        () => subscription,
         getResult
     );
 };

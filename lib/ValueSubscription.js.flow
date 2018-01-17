@@ -3,11 +3,11 @@ import { transaction } from './transaction';
 
 export class ValueSubscription {
     _subscription: Map<mixed, () => void>;
-    _onIdlee: () => void;
+    _onDown: Array<() => void>;
 
-    constructor(onIdlee: () => void) {
+    constructor() {
         this._subscription = new Map();
-        this._onIdlee = onIdlee;
+        this._onDown = [];
     }
 
     notify() {
@@ -16,6 +16,10 @@ export class ValueSubscription {
                 item();
             });
         }
+    }
+
+    onDown(callback: () => void) {
+        this._onDown.push(callback);
     }
 
     bind(notify: () => void): () => void {
@@ -27,7 +31,10 @@ export class ValueSubscription {
             this._subscription.delete(token);
 
             if (this._subscription.size === 0) {
-                this._onIdlee();
+                for (const item of this._onDown) {
+                    item();
+                }
+                this._onDown = [];
             }
         }
     }

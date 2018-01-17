@@ -3,15 +3,34 @@
 import { ValueSubscription } from './ValueSubscription';
 import { ValueComputed } from './ValueComputed';
 import { transaction } from './transaction';
-
+console.info('TESTTTTTTT');
 export class Value<T> {
     _value: T;
     _subscription: ValueSubscription;
 
     constructor(value: T) {
         this._value = value;
-        this._subscription = new ValueSubscription(() => {});
+        this._subscription = new ValueSubscription();
     }
+
+    /*
+    static create<K>(initValue: K, funcBuild: (disconnect: (()=> void) => void): Value<T> {
+        const val = new Value(initValue);
+
+        //this._subscription = new ValueSubscription(() => {});
+    }
+
+    const structure$: ValueObservable<StructureType | null> = ValueObservable.create(null, next => {
+        const unsub = database.ref('structure').on('value', snap => {
+            if (snap) {
+                next(ValidateStructureType(JSON.parse(snap.val())));
+            }
+        });
+    
+        //$ FlowFixMe
+        return () => unsub();
+    });
+    */
 
     setValue(newValue: T) {
         transaction(() => {
@@ -33,7 +52,7 @@ export class Value<T> {
 
     asComputed(): ValueComputed<T> {
         return new ValueComputed(
-            this._subscription,
+            () => this._subscription,
             () => this._value
         );
     }

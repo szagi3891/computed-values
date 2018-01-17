@@ -7,7 +7,7 @@
   "author": "Grzegorz Szeliga <szeligagrzegorz@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "yarn run flow && yarn run test && babel src/ -d lib && flow-copy-source src lib",
+    "build": "rm -Rf lib && yarn run flow && yarn run test && babel src/ -d lib && flow-copy-source src lib",
     "flow": "flow status",
     "test": "jest"
   },
