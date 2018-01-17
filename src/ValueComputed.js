@@ -131,59 +131,60 @@ export class ValueComputed<T> {
     }
 
     debounceTime(timeout: number): ValueComputed<T> {
-        let connection: null | ValueConnection<T> = null;
-        let timer: TimeoutID | null = null;
+        type InnerType = {
+            subscription: ValueSubscription,
+            timer: ValueLayzy<TimeoutID>,
+            connection: ValueLayzy<ValueConnection<T>>
+        };
 
-        const clearConnection = () => {
-            if (connection !== null) {
-                connection.disconnect();
-                connection = null;
+        const inner: ValueLayzy<InnerType> = new ValueLayzy({
+            create: (): InnerType => {
+                const subscription = new ValueSubscription();
 
-                if (timer !== null) {
-                    clearTimeout(timer);
-                    timer = null;
-                }
-            } else {
-                throw Error('Switch - disconnect - Incorrect code branch');
+                const timer: ValueLayzy<TimeoutID> = new ValueLayzy({
+                    create: () => {
+                        return setTimeout(() => {
+                            subscription.notify();
+                        }, timeout);
+                    },
+                    drop: (timerId: TimeoutID) => {
+                        clearTimeout(timerId);
+                    }
+                });
+        
+                const connection: ValueLayzy<ValueConnection<T>> = new ValueLayzy({
+                    create: () => {
+                        return this.bind(() => {
+                            timer.clear();
+                            timer.getValue();
+                        });
+                    },
+                    drop: (conn) => {
+                        conn.disconnect();
+                    }
+                });
+
+                return {
+                    subscription,
+                    timer,
+                    connection
+                };
+            },
+            drop: (inner: InnerType) => {
+                inner.timer.clear();
+                inner.connection.clear();
             }
-        };
+        });
 
-        const subscription = new ValueSubscription();
-        subscription.onDown(clearConnection);
-
-        const notify = () => {
-            if (connection !== null) {
-                if (timer !== null) {
-                    clearTimeout(timer);
-                }
-
-                timer = setTimeout(() => {
-                    subscription.notify();
-                    timer = null;
-                }, timeout);
-            } else {
-                throw Error('Switch - notify - Incorrect code branch');
-            }
-        };
-
-
-        const getConnection = (): ValueConnection<T> => {
-            if (connection !== null) {
-                return connection;
-            }
-
-            const newConnect = this.bind(notify);
-            connection = newConnect;
-            return connection;
-        };
-
-        const getResult = (): T => {
-            return getConnection().getValue();
-        };
+        inner.onInicjalized((innerValue: InnerType) => {
+            innerValue.subscription.onDown(() => {
+                inner.clear();
+            });
+        });
 
         return new ValueComputed(
-            () => subscription,
-            getResult
+            (): ValueSubscription => inner.getValue().subscription,
+            (): T => inner.getValue().connection.getValue().getValue()
         );
     }
 
