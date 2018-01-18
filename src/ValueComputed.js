@@ -31,11 +31,8 @@ export class ValueComputed<T> {
         type ConnectionDataType = {
             subscription: ValueSubscription,
             self: ValueConnection<T>,
-            target: ValueConnection<K>,
+            target: ValueLayzy<ValueConnection<K>>,
         };
-
-        const getTargetBySelf = (self: ValueConnection<T>): ValueConnection<K> =>
-            swithFunc(self.getValue()).bind();
 
         const state: ValueLayzy<ConnectionDataType> = new ValueLayzy({
             create: (): ConnectionDataType => {
@@ -44,26 +41,29 @@ export class ValueComputed<T> {
                 return {
                     subscription: new ValueSubscription(),
                     self,
-                    target: getTargetBySelf(self)
+                    target: new ValueLayzy({
+                        create: () => swithFunc(self.getValue()).bind(),
+                        drop: (conn: ValueConnection<K>) => conn.disconnect()
+                    })
                 }
             },
             drop: (conn: ConnectionDataType) => {
                 conn.self.disconnect();
-                conn.target.disconnect();
+                conn.target.clear();
             }
         });
 
         state.onNew((innerState: ConnectionDataType) => {
             innerState.self.onNotify(() => {
-                const newTarget = getTargetBySelf(innerState.self);
-                newTarget.onNotify(() => {
+                innerState.target.clear();
+                innerState.target.getValue();     
+                innerState.subscription.notify();
+            });
+
+            innerState.target.onNew((target) => {
+                target.onNotify(() => {
                     innerState.subscription.notify();
                 });
-
-                innerState.target.disconnect();
-                innerState.target = newTarget;
-    
-                innerState.subscription.notify();
             });
 
             innerState.subscription.onDown(() => {
@@ -73,7 +73,7 @@ export class ValueComputed<T> {
 
         return new ValueComputed(
             () => state.getValue().subscription,
-            (): K => state.getValue().target.getValue()
+            (): K => state.getValue().target.getValue().getValue()
         );
     }
 
@@ -94,24 +94,20 @@ export class ValueComputed<T> {
 
     bind(): ValueConnection<T> {
         return new ValueConnection(
-            this._getSubscription,
+            this._getSubscription(),
             this._getValue
         );
     }
 
-    connect(onRefresh: (() => void) | null): ValueConnection<T> {
+    connect(onRefresh: (() => void)): ValueConnection<T> {
         const connection = new ValueConnection(
-            this._getSubscription,
+            this._getSubscription(),
             this._getValue
         );
                                                     //TODO - w ValueConnection dodać metodę onRefresh
-        const localOnRefresh = onRefresh;
-
-        if (localOnRefresh) {
-            connection.onNotify(() => {
-                pushToRefresh(localOnRefresh);
-            })
-        }
+        connection.onNotify(() => {
+            pushToRefresh(onRefresh);
+        });
 
         return connection;
     }

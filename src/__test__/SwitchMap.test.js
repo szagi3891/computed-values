@@ -18,9 +18,12 @@ describe('SwitchMap', () => {
         const out = id.asComputed().switchMap(switchMapFn);
 
         let refreshCount = 0;
-        const outConnection = out.connect(() => {
+        const refreshFunc = () => {
             refreshCount++;
-        });
+        };
+
+        const outConnection = out.connect(refreshFunc);
+        const outConnection0000 = out.connect(refreshFunc);
 
         expect(refreshCount).toBe(0);
         expect(outConnection.getValue()).toBe('data (id2)');
@@ -49,5 +52,27 @@ describe('SwitchMap', () => {
 
         expect(refreshCount).toBe(3);
         expect(outConnection.getValue()).toBe('nowa nowa nowa');
+
+        outConnection.disconnect();
+        outConnection0000.disconnect();
+
+        let refreshCount2 = 0;
+        const refreshFunc2 = () => {
+            refreshCount2++;
+        };
+
+        const outConnection2 = out.connect(refreshFunc2);
+        const outConnection3 = out.connect(refreshFunc2);
+
+        expect(refreshCount).toBe(3);
+        expect(refreshCount2).toBe(0);
+        expect(outConnection2.getValue()).toBe('nowa nowa nowa');
+
+        record2.setValue('hhh');
+
+        expect(refreshCount).toBe(3);
+        expect(refreshCount2).toBe(1);
+        expect(outConnection2.getValue()).toBe('hhh');
+        expect(outConnection3.getValue()).toBe('hhh');
     });
 });
