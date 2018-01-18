@@ -29,73 +29,51 @@ export class ValueComputed<T> {
 
     switchMap<K>(swithFunc: ((value: T) => ValueComputed<K>)): ValueComputed<K> {
         type ConnectionDataType = {
+            subscription: ValueSubscription,
             self: ValueConnection<T>,
             target: ValueConnection<K>,
         };
 
-        let connection: null | ConnectionDataType = null;
+        const getTargetBySelf = (self: ValueConnection<T>): ValueConnection<K> =>
+            swithFunc(self.getValue()).bind();
 
-        const clearConnection = () => {
-            if (connection !== null) {
-                connection.self.disconnect();
-                connection.target.disconnect();
-                connection = null;
-            } else {
-                throw Error('Switch - disconnect - Incorrect code branch');
+        const state: ValueLayzy<ConnectionDataType> = new ValueLayzy({
+            create: (): ConnectionDataType => {
+                const self = this.bind();
+                
+                return {
+                    subscription: new ValueSubscription(),
+                    self,
+                    target: getTargetBySelf(self)
+                }
+            },
+            drop: (conn: ConnectionDataType) => {
+                conn.self.disconnect();
+                conn.target.disconnect();
             }
-        };
+        });
 
-        const subscription = new ValueSubscription();
-        subscription.onDown(clearConnection);
+        state.onNew((innerState: ConnectionDataType) => {
+            innerState.self.onNotify(() => {
+                const newTarget = getTargetBySelf(innerState.self);
+                newTarget.onNotify(() => {
+                    innerState.subscription.notify();
+                });
 
-        const getTargetBySelf = (self: ValueConnection<T>): ValueConnection<K> => {
-            const targetComputed = swithFunc(self.getValue());
-            const conn = targetComputed.bind();
-            conn.onNotify(() => {
-                subscription.notify();
+                innerState.target.disconnect();
+                innerState.target = newTarget;
+    
+                innerState.subscription.notify();
             });
-            return conn;
-        };
 
-        const notify = () => {
-            if (connection !== null) {
-                const newTarget = getTargetBySelf(connection.self);
-                connection.target.disconnect();
-                connection.target = newTarget;
-            } else {
-                throw Error('Switch - notify - Incorrect code branch');
-            }
-
-            subscription.notify();
-        };
-
-        const getNewConnection = (): ConnectionDataType => {
-            const self = this.bind();
-            self.onNotify(notify);
-            return {
-                self,
-                target: getTargetBySelf(self)
-            };
-        };
-
-        const getConnection = (): ConnectionDataType => {
-            if (connection !== null) {
-                return connection;
-            }
-
-            const newConnect = getNewConnection();
-            connection = newConnect;
-            return connection;
-        };
-
-        const getResult = (): K => {
-            const connection = getConnection();
-            return connection.target.getValue();
-        };
+            innerState.subscription.onDown(() => {
+                state.clear();
+            })
+        });
 
         return new ValueComputed(
-            () => subscription,
-            getResult
+            () => state.getValue().subscription,
+            (): K => state.getValue().target.getValue()
         );
     }
 
