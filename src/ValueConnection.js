@@ -1,19 +1,34 @@
 //@flow
+ 
+import { ValueSubscription } from './ValueSubscription';
 
 export class ValueConnection<T> {
     _connect: bool;
+    _getSubscription: () => ValueSubscription;
     _getValue: () => T;
     _disconnect: () => void;
+    _notifyCallbacks: Array<() => void>;
 
-    constructor(getValue: () => T, disconnect: () => void) {
+    constructor(
+        getSubscription: () => ValueSubscription,
+        getValue: () => T,
+    ) {
         this._connect = true;
+        this._getSubscription = getSubscription;
         this._getValue = getValue;
-        this._disconnect = disconnect;
+        this._disconnect = getSubscription().bind(
+            () => this._notify()
+        );
+        this._notifyCallbacks = [];
     }
 
-    disconnect = () => {
+    disconnect() {
         this._connect = true;
         this._disconnect();
+    }
+
+    onNotify(callback: () => void) {
+        this._notifyCallbacks.push(callback);
     }
 
     getValue(): T {
@@ -22,5 +37,11 @@ export class ValueConnection<T> {
         }
 
         throw Error('Połączenie jest rozłączone');
+    }
+
+    _notify() {
+        for (const callback of this._notifyCallbacks) {
+            callback();
+        }
     }
 }

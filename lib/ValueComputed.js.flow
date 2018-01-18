@@ -32,7 +32,8 @@ export class ValueComputed<T> {
 
                 const subscription = new ValueSubscription();
 
-                const parent = this.bind(() => {
+                const parent = this.bind();
+                parent.onNotify(() => {
                     result.clear();
                     subscription.notify();
                 });
@@ -83,9 +84,11 @@ export class ValueComputed<T> {
 
         const getTargetBySelf = (self: ValueConnection<T>): ValueConnection<K> => {
             const targetComputed = swithFunc(self.getValue());
-            return targetComputed.bind(() => {
+            const conn = targetComputed.bind();
+            conn.onNotify(() => {
                 subscription.notify();
             });
+            return conn;
         };
 
         const notify = () => {
@@ -101,8 +104,8 @@ export class ValueComputed<T> {
         };
 
         const getNewConnection = (): ConnectionDataType => {
-            const self = this.bind(notify);
-
+            const self = this.bind();
+            self.onNotify(notify);
             return {
                 self,
                 target: getTargetBySelf(self)
@@ -145,6 +148,8 @@ export class ValueComputed<T> {
                     create: () => {
                         return setTimeout(() => {
                             subscription.notify();
+                                                      //TODO - robić podobnie z timerem
+                                                      //odpalić timer bez callbacka, a potem się dopiero podpiąć callback
                         }, timeout);
                     },
                     drop: (timerId: TimeoutID) => {
@@ -153,12 +158,7 @@ export class ValueComputed<T> {
                 });
         
                 const connection: ValueLayzy<ValueConnection<T>> = new ValueLayzy({
-                    create: () => {
-                        return this.bind(() => {
-                            timer.clear();
-                            timer.getValue();
-                        });
-                    },
+                    create: () => this.bind(),
                     drop: (conn) => {
                         conn.disconnect();
                     }
@@ -180,6 +180,13 @@ export class ValueComputed<T> {
             innerValue.subscription.onDown(() => {
                 inner.clear();
             });
+
+            innerValue.connection.onInicjalized((connectionInner) => {
+                connectionInner.onNotify(() => {
+                    innerValue.timer.clear();
+                    innerValue.timer.getValue();
+                });
+            })
         });
 
         return new ValueComputed(
@@ -194,27 +201,28 @@ export class ValueComputed<T> {
         //TODO - !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
 
-    bind(notify: () => void): ValueConnection<T> {
-        const disconnect = this._getSubscription().bind(notify);
+    bind(): ValueConnection<T> {
         return new ValueConnection(
-            () => this._getValue(),
-            disconnect
+            this._getSubscription,
+            this._getValue
         );
     }
 
     connect(onRefresh: (() => void) | null): ValueConnection<T> {
-        const disconnect = this._getSubscription().bind(
-            () => {
-                if (onRefresh) {
-                    pushToRefresh(onRefresh);
-                }
-            }
+        const connection = new ValueConnection(
+            this._getSubscription,
+            this._getValue
         );
+                                                    //TODO - w ValueConnection dodać metodę onRefresh
+        const localOnRefresh = onRefresh;
 
-        return new ValueConnection(
-            () => this._getValue(),
-            disconnect
-        );
+        if (localOnRefresh) {
+            connection.onNotify(() => {
+                pushToRefresh(localOnRefresh);
+            })
+        }
+
+        return connection;
     }
 }
 

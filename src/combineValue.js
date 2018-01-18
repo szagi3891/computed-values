@@ -49,8 +49,11 @@ export const combineValue = <A, B, R>(
             return connection;
         }
 
-        const newConnectA = a.bind(notify);
-        const newConnectB = b.bind(notify);
+        const newConnectA = a.bind();
+        const newConnectB = b.bind();
+
+        newConnectA.onNotify(notify);
+        newConnectB.onNotify(notify);
 
         connection = {
             a: newConnectA,
@@ -125,9 +128,11 @@ export const combineValueArr = <A,R>(
             return connection;
         }
 
-        const newConnectArr = arr.map(
-            item => item.bind(notify)
-        );
+        const newConnectArr = arr.map(item => {
+            const localConnection = item.bind();
+            localConnection.onNotify(notify);
+            return localConnection;
+        });
 
         connection = {
             arr: newConnectArr,
