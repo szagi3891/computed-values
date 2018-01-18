@@ -29,73 +29,51 @@ export class ValueComputed<T> {
 
     switchMap<K>(swithFunc: ((value: T) => ValueComputed<K>)): ValueComputed<K> {
         type ConnectionDataType = {
+            subscription: ValueSubscription,
             self: ValueConnection<T>,
-            target: ValueConnection<K>,
+            target: ValueLayzy<ValueConnection<K>>,
         };
 
-        let connection: null | ConnectionDataType = null;
-
-        const clearConnection = () => {
-            if (connection !== null) {
-                connection.self.disconnect();
-                connection.target.disconnect();
-                connection = null;
-            } else {
-                throw Error('Switch - disconnect - Incorrect code branch');
+        const state: ValueLayzy<ConnectionDataType> = new ValueLayzy({
+            create: (): ConnectionDataType => {
+                const self = this.bind();
+                
+                return {
+                    subscription: new ValueSubscription(),
+                    self,
+                    target: new ValueLayzy({
+                        create: () => swithFunc(self.getValue()).bind(),
+                        drop: (conn: ValueConnection<K>) => conn.disconnect()
+                    })
+                }
+            },
+            drop: (conn: ConnectionDataType) => {
+                conn.self.disconnect();
+                conn.target.clear();
             }
-        };
+        });
 
-        const subscription = new ValueSubscription();
-        subscription.onDown(clearConnection);
-
-        const getTargetBySelf = (self: ValueConnection<T>): ValueConnection<K> => {
-            const targetComputed = swithFunc(self.getValue());
-            const conn = targetComputed.bind();
-            conn.onNotify(() => {
-                subscription.notify();
+        state.onNew((innerState: ConnectionDataType) => {
+            innerState.self.onNotify(() => {
+                innerState.target.clear();
+                innerState.target.getValue();     
+                innerState.subscription.notify();
             });
-            return conn;
-        };
 
-        const notify = () => {
-            if (connection !== null) {
-                const newTarget = getTargetBySelf(connection.self);
-                connection.target.disconnect();
-                connection.target = newTarget;
-            } else {
-                throw Error('Switch - notify - Incorrect code branch');
-            }
+            innerState.target.onNew((target) => {
+                target.onNotify(() => {
+                    innerState.subscription.notify();
+                });
+            });
 
-            subscription.notify();
-        };
-
-        const getNewConnection = (): ConnectionDataType => {
-            const self = this.bind();
-            self.onNotify(notify);
-            return {
-                self,
-                target: getTargetBySelf(self)
-            };
-        };
-
-        const getConnection = (): ConnectionDataType => {
-            if (connection !== null) {
-                return connection;
-            }
-
-            const newConnect = getNewConnection();
-            connection = newConnect;
-            return connection;
-        };
-
-        const getResult = (): K => {
-            const connection = getConnection();
-            return connection.target.getValue();
-        };
+            innerState.subscription.onDown(() => {
+                state.clear();
+            })
+        });
 
         return new ValueComputed(
-            () => subscription,
-            getResult
+            () => state.getValue().subscription,
+            (): K => state.getValue().target.getValue().getValue()
         );
     }
 
@@ -116,24 +94,20 @@ export class ValueComputed<T> {
 
     bind(): ValueConnection<T> {
         return new ValueConnection(
-            this._getSubscription,
+            this._getSubscription(),
             this._getValue
         );
     }
 
-    connect(onRefresh: (() => void) | null): ValueConnection<T> {
+    connect(onRefresh: (() => void)): ValueConnection<T> {
         const connection = new ValueConnection(
-            this._getSubscription,
+            this._getSubscription(),
             this._getValue
         );
                                                     //TODO - w ValueConnection dodać metodę onRefresh
-        const localOnRefresh = onRefresh;
-
-        if (localOnRefresh) {
-            connection.onNotify(() => {
-                pushToRefresh(localOnRefresh);
-            })
-        }
+        connection.onNotify(() => {
+            pushToRefresh(onRefresh);
+        });
 
         return connection;
     }

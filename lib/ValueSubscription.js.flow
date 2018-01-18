@@ -38,4 +38,8 @@ export class ValueSubscription {
             }
         }
     }
+
+    count(): number {
+        return this._subscription.size;
+    }
 }

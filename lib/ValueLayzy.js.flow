@@ -8,12 +8,12 @@ type CallbacksType<G> = {
 export class ValueLayzy<G> {
     _callbacks: CallbacksType<G>;
     _value: null | { value: G};
-    _onInicjalized: Array<(value: G) => void>;
+    _onNew: Array<(value: G) => void>;
 
     constructor(callbacks: CallbacksType<G>) {
         this._callbacks = callbacks;
         this._value = null;
-        this._onInicjalized = [];
+        this._onNew = [];
     }
 
     getValue(): G {
@@ -24,8 +24,8 @@ export class ValueLayzy<G> {
 
         const newValue = this._callbacks.create();
 
-        for (const callbackInit of this._onInicjalized) {
-            callbackInit(newValue);
+        for (const onNewItem of this._onNew) {
+            onNewItem(newValue);
         }
 
         this._value = { value: newValue };
@@ -43,7 +43,7 @@ export class ValueLayzy<G> {
         this._value = null;
     }
 
-    onInicjalized(callback: (data: G) => void) {
-        this._onInicjalized.push(callback);
+    onNew(callback: (data: G) => void) {
+        this._onNew.push(callback);
     }
 }
