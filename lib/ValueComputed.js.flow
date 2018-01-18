@@ -7,6 +7,7 @@ import { Value } from './Value';
 import { ValueLayzy } from './ValueLayzy';
 
 import { map } from './operators/map';
+import { debounceTime } from './operators/debounceTime';
 
 export class ValueComputed<T> {
     _getSubscription: () => ValueSubscription;
@@ -99,64 +100,11 @@ export class ValueComputed<T> {
     }
 
     debounceTime(timeout: number): ValueComputed<T> {
-        type InnerType = {
-            subscription: ValueSubscription,
-            timer: ValueLayzy<TimeoutID>,
-            connection: ValueLayzy<ValueConnection<T>>
-        };
-
-        const inner: ValueLayzy<InnerType> = new ValueLayzy({
-            create: (): InnerType => {
-                const subscription = new ValueSubscription();
-
-                const timer: ValueLayzy<TimeoutID> = new ValueLayzy({
-                    create: () => {
-                        return setTimeout(() => {
-                            subscription.notify();
-                                                      //TODO - robić podobnie z timerem
-                                                      //odpalić timer bez callbacka, a potem się dopiero podpiąć callback
-                        }, timeout);
-                    },
-                    drop: (timerId: TimeoutID) => {
-                        clearTimeout(timerId);
-                    }
-                });
-        
-                const connection: ValueLayzy<ValueConnection<T>> = new ValueLayzy({
-                    create: () => this.bind(),
-                    drop: (conn) => {
-                        conn.disconnect();
-                    }
-                });
-
-                return {
-                    subscription,
-                    timer,
-                    connection
-                };
-            },
-            drop: (inner: InnerType) => {
-                inner.timer.clear();
-                inner.connection.clear();
-            }
-        });
-
-        inner.onInicjalized((innerValue: InnerType) => {
-            innerValue.subscription.onDown(() => {
-                inner.clear();
-            });
-
-            innerValue.connection.onInicjalized((connectionInner) => {
-                connectionInner.onNotify(() => {
-                    innerValue.timer.clear();
-                    innerValue.timer.getValue();
-                });
-            })
-        });
+        const [getValueSubscription, getResult] = debounceTime(() => this.bind(), timeout);
 
         return new ValueComputed(
-            (): ValueSubscription => inner.getValue().subscription,
-            (): T => inner.getValue().connection.getValue().getValue()
+            getValueSubscription,
+            getResult
         );
     }
 
