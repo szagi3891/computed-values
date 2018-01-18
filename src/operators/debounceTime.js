@@ -27,16 +27,12 @@ export const debounceTime = <T>(
                                                     //odpalić timer bez callbacka, a potem się dopiero podpiąć callback
                     }, timeout);
                 },
-                drop: (timerId: TimeoutID) => {
-                    clearTimeout(timerId);
-                }
+                drop: (timerId: TimeoutID) => clearTimeout(timerId)
             });
     
             const connection: ValueLayzy<ValueConnection<T>> = new ValueLayzy({
                 create: () => parentBind(),
-                drop: (conn) => {
-                    conn.disconnect();
-                }
+                drop: (conn) => conn.disconnect()
             });
 
             return {

@@ -29,9 +29,7 @@ export const map = <T,M>(
                 subscription: new ValueSubscription()
             });
         },
-        drop: (inner: InnerType) => {
-            inner.connection.disconnect();
-        }
+        drop: (inner: InnerType) => inner.connection.disconnect()
     });
 
     state.onInicjalized((stateInner: InnerType) => {
