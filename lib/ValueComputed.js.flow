@@ -6,6 +6,8 @@ import { pushToRefresh } from './transaction';
 import { Value } from './Value';
 import { ValueLayzy } from './ValueLayzy';
 
+import { map } from './operators/map';
+
 export class ValueComputed<T> {
     _getSubscription: () => ValueSubscription;
     _getValue: () => T;
@@ -16,41 +18,12 @@ export class ValueComputed<T> {
     }
 
     map<M>(mapFun: (value: T) => M): ValueComputed<M> {
+        const [getValueSubscription, getResult] = map(() => this.bind(), mapFun);
 
-        type InnerType = {
-            result: ValueLayzy<M>,
-            connection: ValueConnection<T>,
-            subscription: ValueSubscription,
-        };
-
-        const state: ValueLayzy<InnerType> = new ValueLayzy({
-            create: () => ({
-                result: new ValueLayzy({
-                    create: () => mapFun(this._getValue()),
-                    drop: null
-                }),
-                connection : this.bind(),
-                subscription: new ValueSubscription()
-            }),
-            drop: (inner: InnerType) => {
-                inner.connection.disconnect();
-            }
-        });
-
-        state.onInicjalized((stateInner: InnerType) => {
-            stateInner.connection.onNotify(() => {
-                stateInner.result.clear();
-                stateInner.subscription.notify();
-            });
-            stateInner.subscription.onDown(() => {
-                state.clear();
-            });
-        });
-
-       return new ValueComputed(
-            (): ValueSubscription => state.getValue().subscription,
-            (): M => state.getValue().result.getValue()
-       );
+        return new ValueComputed(
+            getValueSubscription,
+            getResult
+        );
     }
 
     switchMap<K>(swithFunc: ((value: T) => ValueComputed<K>)): ValueComputed<K> {
