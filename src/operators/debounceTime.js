@@ -47,12 +47,12 @@ export const debounceTime = <T>(
         }
     });
 
-    inner.onInicjalized((innerValue: InnerType) => {
+    inner.onNew((innerValue: InnerType) => {
         innerValue.subscription.onDown(() => {
             inner.clear();
         });
 
-        innerValue.connection.onInicjalized((connectionInner) => {
+        innerValue.connection.onNew((connectionInner) => {
             connectionInner.onNotify(() => {
                 innerValue.timer.clear();
                 innerValue.timer.getValue();

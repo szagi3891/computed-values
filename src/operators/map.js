@@ -32,7 +32,7 @@ export const map = <T,M>(
         drop: (inner: InnerType) => inner.connection.disconnect()
     });
 
-    state.onInicjalized((stateInner: InnerType) => {
+    state.onNew((stateInner: InnerType) => {
         stateInner.connection.onNotify(() => {
             stateInner.result.clear();
             stateInner.subscription.notify();
