@@ -19,45 +19,37 @@ export class ValueComputed<T> {
 
         type InnerType = {
             result: ValueLayzy<M>,
-            parent: ValueConnection<T>,
+            connection: ValueConnection<T>,
             subscription: ValueSubscription,
         };
 
-        const inner: ValueLayzy<InnerType> = new ValueLayzy({
-            create: () => {
-                const result = new ValueLayzy({
+        const state: ValueLayzy<InnerType> = new ValueLayzy({
+            create: () => ({
+                result: new ValueLayzy({
                     create: () => mapFun(this._getValue()),
                     drop: null
-                });
-
-                const subscription = new ValueSubscription();
-
-                const parent = this.bind();
-                parent.onNotify(() => {
-                    result.clear();
-                    subscription.notify();
-                });
-
-                return {
-                    result,
-                    parent,
-                    subscription
-                };
-            },
+                }),
+                connection : this.bind(),
+                subscription: new ValueSubscription()
+            }),
             drop: (inner: InnerType) => {
-                inner.parent.disconnect();
+                inner.connection.disconnect();
             }
         });
 
-        inner.onInicjalized((innerValue: InnerType) => {
-            innerValue.subscription.onDown(() => {
-                inner.clear();
+        state.onInicjalized((stateInner: InnerType) => {
+            stateInner.connection.onNotify(() => {
+                stateInner.result.clear();
+                stateInner.subscription.notify();
+            });
+            stateInner.subscription.onDown(() => {
+                state.clear();
             });
         });
 
        return new ValueComputed(
-            (): ValueSubscription => inner.getValue().subscription,
-            (): M => inner.getValue().result.getValue()
+            (): ValueSubscription => state.getValue().subscription,
+            (): M => state.getValue().result.getValue()
        );
     }
 

@@ -22,7 +22,7 @@ export class ValueConnection<T> {
         this._notifyCallbacks = [];
     }
 
-    disconnect() {
+    disconnect = () => {
         this._connect = true;
         this._disconnect();
     }
