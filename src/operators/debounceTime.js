@@ -1,6 +1,6 @@
 //@flow
 
-import { ValueSubscription } from '../ValueSubscription';
+import { Subscription } from '../Subscription';
 import { ValueConnection } from '../ValueConnection';
 import { Value } from '../Value';
 import { ValueLayzy } from '../ValueLayzy';
@@ -8,16 +8,16 @@ import { ValueLayzy } from '../ValueLayzy';
 export const debounceTime = <T>(
     parentBind: () => ValueConnection<T>,
     timeout: number
-): [() => ValueSubscription, () => T] => {
+): [() => Subscription, () => T] => {
     type InnerType = {
-        subscription: ValueSubscription,
+        subscription: Subscription,
         timer: ValueLayzy<TimeoutID>,
         connection: ValueLayzy<ValueConnection<T>>
     };
 
     const inner: ValueLayzy<InnerType> = new ValueLayzy({
         create: (): InnerType => {
-            const subscription = new ValueSubscription();
+            const subscription = new Subscription();
 
             const timer: ValueLayzy<TimeoutID> = new ValueLayzy({
                 create: () => {
@@ -61,7 +61,7 @@ export const debounceTime = <T>(
     });
 
     return [
-        (): ValueSubscription => inner.getValue().subscription,
+        (): Subscription => inner.getValue().subscription,
         (): T => inner.getValue().connection.getValue().getValue()
     ];
 };

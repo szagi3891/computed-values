@@ -1,7 +1,7 @@
 //@flow
 import { transaction } from './transaction';
 
-export class ValueSubscription {
+export class Subscription {
     _subscription: Map<mixed, () => void>;
     _onDown: Array<() => void>;
 

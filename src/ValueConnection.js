@@ -1,6 +1,6 @@
 //@flow
  
-import { ValueSubscription } from './ValueSubscription';
+import { Subscription } from './Subscription';
 
 export class ValueConnection<T> {
     _connect: bool;
@@ -9,7 +9,7 @@ export class ValueConnection<T> {
     _disconnect: () => void;
 
     constructor(
-        subscription: ValueSubscription,
+        subscription: Subscription,
         getValue: () => T,
     ) {
         this._connect = true;

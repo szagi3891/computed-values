@@ -1,0 +1,35 @@
+//import { Value, ValueComputed } from '..';
+import { Value } from '../Value';
+import { combineValue } from '../combineValue';
+
+describe('Combine Value', () => {
+    it('Basic', () => {
+        const val1 = new Value(0);
+        const val2 = new Value(2);
+        
+        //const sum = ValueComputed.combineValue(
+        const sum = combineValue(
+            val1.asComputed(),
+            val2.asComputed(),
+            (val1, val2) => val1 + val2
+        );
+
+        let refresh = 0;
+        const connection = sum.connect(() => {
+            refresh++;
+        });
+
+        expect(refresh).toBe(0);
+        expect(connection.getValue()).toBe(2);
+
+        val2.setValue(10);
+
+        expect(refresh).toBe(1);
+        expect(connection.getValue()).toBe(10);
+
+        val1.setValue(5);
+
+        expect(refresh).toBe(2);
+        expect(connection.getValue()).toBe(15);
+    });
+});

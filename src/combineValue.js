@@ -2,7 +2,7 @@
 
 import { ValueComputed } from './ValueComputed';
 import { ValueConnection } from './ValueConnection';
-import { ValueSubscription } from './ValueSubscription';
+import { Subscription } from './Subscription';
 
 export const combineValue = <A, B, R>(
     a: ValueComputed<A>,
@@ -19,7 +19,7 @@ export const combineValue = <A, B, R>(
 
     let connection: null | ConnectionDataType = null;
 
-    const subscription = new ValueSubscription();
+    const subscription = new Subscription();
 
     subscription.onDown(() => {
         if (connection !== null) {
@@ -97,7 +97,7 @@ export const combineValueArr = <A,R>(
 
     let connection: null | ConnectionDataType = null;
 
-    const subscription = new ValueSubscription();
+    const subscription = new Subscription();
 
     subscription.onDown(() => {
         if (connection !== null) {

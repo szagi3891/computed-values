@@ -1,6 +1,6 @@
 //@flow
 
-import { ValueSubscription } from '../ValueSubscription';
+import { Subscription } from '../Subscription';
 import { ValueConnection } from '../ValueConnection';
 import { Value } from '../Value';
 import { ValueLayzy } from '../ValueLayzy';
@@ -8,10 +8,10 @@ import { ValueLayzy } from '../ValueLayzy';
 export const switchMap = <T, K>(
     bindSelf: () => ValueConnection<T>,
     swithFunc: ((value: T) => ValueConnection<K>)
-): [() => ValueSubscription, () => K] => {
+): [() => Subscription, () => K] => {
 
     type ConnectionDataType = {
-        subscription: ValueSubscription,
+        subscription: Subscription,
         self: ValueConnection<T>,
         target: ValueConnection<K>,
     };
@@ -23,7 +23,7 @@ export const switchMap = <T, K>(
         create: (): ConnectionDataType => {
             const self = bindSelf();
             return {
-                subscription: new ValueSubscription(),
+                subscription: new Subscription(),
                 self,
                 target: getNewTarget(self)
             }

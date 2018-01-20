@@ -1,6 +1,6 @@
 //@flow
 
-import { ValueSubscription } from './ValueSubscription';
+import { Subscription } from './Subscription';
 import { ValueConnection } from './ValueConnection';
 import { pushToRefresh } from './transaction';
 import { Value } from './Value';
@@ -11,10 +11,10 @@ import { debounceTime } from './operators/debounceTime';
 import { switchMap } from './operators/switchMap';
 
 export class ValueComputed<T> {
-    _getSubscription: () => ValueSubscription;
+    _getSubscription: () => Subscription;
     _getValue: () => T;
 
-    constructor(getSubscription: () => ValueSubscription, getValue: () => T) {
+    constructor(getSubscription: () => Subscription, getValue: () => T) {
         this._getSubscription = getSubscription;
         this._getValue = getValue;
     }
