@@ -3,160 +3,79 @@
 import { ValueComputed } from './ValueComputed';
 import { ValueConnection } from './ValueConnection';
 import { Subscription } from './Subscription';
+import { ValueLayzy } from './ValueLayzy';
 
 export const combineValue = <A, B, R>(
     a: ValueComputed<A>,
     b: ValueComputed<B>,
     combine: ((a: A, b: B) => R)
-):
-    ValueComputed<R> => {
+): ValueComputed<R> => {
+    //$FlowFixMe
+    return combineValueArray([a,b], (arr) => combine(...arr));
+}
 
-    type ConnectionDataType = {
-        a: ValueConnection<A>,
-        b: ValueConnection<B>,
-        result: null | { value: R }
-    };
+export const combineValue3 = <A, B, C, R>(
+    a: ValueComputed<A>,
+    b: ValueComputed<B>,
+    c: ValueComputed<C>,
+    combine: ((a: A, b: B, c: C) => R)
+): ValueComputed<R> => {   
+    //$FlowFixMe
+    return combineValueArray([a,b,c], (arr) => combine(...arr));
+}
 
-    let connection: null | ConnectionDataType = null;
-
-    const subscription = new Subscription();
-
-    subscription.onDown(() => {
-        if (connection !== null) {
-            connection.a.disconnect();
-            connection.b.disconnect();
-            connection = null;
-        } else {
-            throw Error('combineValue - disconnect - Incorrect code branch');
-        }
-    });
-
-    const clearCache = () => {
-        if (connection) {
-            connection.result = null;
-        } else {
-            throw Error('combineValue - clearCache - Incorrect code branch')
-        }
-    };
-
-    const notify = () => {
-        clearCache();
-        return subscription.notify();
-    };
-
-    const getConnection = (): ConnectionDataType => {
-        if (connection !== null) {
-            return connection;
-        }
-
-        const newConnectA = a.bind();
-        const newConnectB = b.bind();
-
-        newConnectA.onNotify(notify);
-        newConnectB.onNotify(notify);
-
-        connection = {
-            a: newConnectA,
-            b: newConnectB,
-            result: null,
-        };
-
-        return connection;
-    };
-
-    const getResult = (): R => {
-        const connection = getConnection();
-
-        if (connection.result === null) {
-            const result = combine(connection.a.getValue(), connection.b.getValue());
-            connection.result = { value: result };
-            return result;
-        } else {
-            return connection.result.value;
-        }
-    };
-
-    return new ValueComputed(
-        () => subscription,
-        getResult
-    );
-};
-
-//TODO - scalić w jeden te dwa operatory
-
-export const combineValueArr = <A,R>(
+export const combineValueArray = <A,R>(
     arr: Array<ValueComputed<A>>,
     combine: ((arr: Array<A>) => R)
-):
-    ValueComputed<R> => {
+): ValueComputed<R> => {
 
     type ConnectionDataType = {
-        arr: Array<ValueConnection<A>>,
-        result: null | { value: R }
+        subscription: Subscription,
+        connections: Array<ValueConnection<A>>,
+        result: ValueLayzy<R>
     };
 
-    let connection: null | ConnectionDataType = null;
+    const state: ValueLayzy<ConnectionDataType> = new ValueLayzy({
+        create: () => {
+            const connections = arr.map(item => item.bind());
 
-    const subscription = new Subscription();
-
-    subscription.onDown(() => {
-        if (connection !== null) {
-            for (const connectionItem of connection.arr) {
+            return {
+                subscription: new Subscription(),
+                connections: connections,
+                result: new ValueLayzy({
+                    create: () => {
+                        return combine(
+                            connections.map(connectionItem => connectionItem.getValue())
+                        )
+                    },
+                    drop: null
+                }),
+            };
+        },
+        drop: (stateInner) => {
+            for (const connectionItem of stateInner.connections) {
                 connectionItem.disconnect();
             }
-            connection = null;
-        } else {
-            throw Error('combineValue - disconnect - Incorrect code branch');
         }
     });
 
-    const clearCache = () => {
-        if (connection) {
-            connection.result = null;
-        } else {
-            throw Error('combineValue - clearCache - Incorrect code branch')
-        }
-    };
-
-    const notify = () => {
-        clearCache();
-        return subscription.notify();
-    };
-
-    const getConnection = (): ConnectionDataType => {
-        if (connection !== null) {
-            return connection;
-        }
-
-        const newConnectArr = arr.map(item => {
-            const localConnection = item.bind();
-            localConnection.onNotify(notify);
-            return localConnection;
+    state.onNew((stateInner) => {
+        stateInner.subscription.onDown(() => {
+            state.clear();
         });
 
-        connection = {
-            arr: newConnectArr,
-            result: null,
+        const notify = () => {
+            stateInner.result.clear();
+            stateInner.subscription.notify();
         };
 
-        return connection;
-    };
-
-    const getResult = (): R => {
-        const connection = getConnection();
-
-        if (connection.result === null) {
-            const arrArgs = connection.arr.map(connectionItem => connectionItem.getValue());
-            const result = combine(arrArgs);
-            connection.result = { value: result };
-            return result;
-        } else {
-            return connection.result.value;
+        for (const connectionItem of stateInner.connections) {
+            connectionItem.onNotify(notify);
         }
-    };
+    });
 
     return new ValueComputed(
-        () => subscription,
-        getResult
+        () => state.getValue().subscription,
+        (): R => state.getValue().result.getValue()
     );
 };
