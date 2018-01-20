@@ -1,5 +1,4 @@
 import { Value, ValueComputed } from '..';
-import { lchmod } from 'fs';
 
 class Source {
     _callback: Map<mixed, (data: K) => void>;

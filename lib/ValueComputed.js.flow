@@ -10,7 +10,6 @@ import { map } from './operators/map';
 import { debounceTime } from './operators/debounceTime';
 import { switchMap } from './operators/switchMap';
 import { combine } from './operators/combine';
-import { lchmod } from 'fs';
 
 const combineArray = <A,R>(
     arr: Array<ValueComputed<A>>,
