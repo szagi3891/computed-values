@@ -8,7 +8,7 @@ import { ValueLayzy } from './ValueLayzy';
 
 import { map } from './operators/map';
 import { debounceTime } from './operators/debounceTime';
-//import { switchMap } from './operators/switchMap';
+import { switchMap } from './operators/switchMap';
 
 export class ValueComputed<T> {
     _getSubscription: () => ValueSubscription;
@@ -29,56 +29,14 @@ export class ValueComputed<T> {
     }
 
     switchMap<K>(swithFunc: ((value: T) => ValueComputed<K>)): ValueComputed<K> {
-        type ConnectionDataType = {
-            subscription: ValueSubscription,
-            self: ValueConnection<T>,
-            target: ValueConnection<K>,
-        };
-
-        const getNewTarget = (self: ValueConnection<T>): ValueConnection<K> =>
-            swithFunc(self.getValue()).bind();
-
-        const state: ValueLayzy<ConnectionDataType> = new ValueLayzy({
-            create: (): ConnectionDataType => {
-                const self = this.bind();
-                return {
-                    subscription: new ValueSubscription(),
-                    self,
-                    target: getNewTarget(self)
-                }
-            },
-            drop: (conn: ConnectionDataType) => {
-                conn.self.disconnect();
-                conn.target.disconnect();
-            }
-        });
-
-        state.onNew((innerState: ConnectionDataType) => {
-            innerState.self.onNotify(() => {
-                const newTarget = getNewTarget(innerState.self);
-
-                newTarget.onNotify(() => {
-                    innerState.subscription.notify();
-                });
-
-                innerState.target.disconnect();
-                innerState.target = newTarget;
-
-                innerState.subscription.notify();
-            });
-
-            innerState.target.onNotify(() => {
-                innerState.subscription.notify();
-            });
-
-            innerState.subscription.onDown(() => {
-                state.clear();
-            })
-        });
+        const [getValueSubscription, getResult] = switchMap(
+            () => this.bind(),
+            (value: T) => swithFunc(value).bind()
+        );
 
         return new ValueComputed(
-            () => state.getValue().subscription,
-            (): K => state.getValue().target.getValue()
+            getValueSubscription,
+            getResult
         );
     }
 
