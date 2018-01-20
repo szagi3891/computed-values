@@ -10,6 +10,7 @@ import { map } from './operators/map';
 import { debounceTime } from './operators/debounceTime';
 import { switchMap } from './operators/switchMap';
 import { combine } from './operators/combine';
+import { connect } from 'net';
 
 const combineArray = <A,R>(
     arr: Array<ValueComputed<A>>,
@@ -138,6 +139,13 @@ export class ValueComputed<T> {
         combineFunc: ((arr: Array<A>) => R)
     ): ValueComputed<R> {
         return combineArray(arr, combineFunc);
+    }
+
+    getValueSnapshot(): T {
+        const connection = this.bind();
+        const value = connection.getValue();
+        connection.disconnect();
+        return value;
     }
 
     bind(): ValueConnection<T> {
