@@ -38,8 +38,4 @@ export class ValueConnection<T> {
 
         throw Error('Połączenie jest rozłączone');
     }
-
-    _notify() {
-
-    }
 }
