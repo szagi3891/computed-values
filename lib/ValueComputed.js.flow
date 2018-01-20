@@ -8,6 +8,7 @@ import { ValueLayzy } from './ValueLayzy';
 
 import { map } from './operators/map';
 import { debounceTime } from './operators/debounceTime';
+//import { switchMap } from './operators/switchMap';
 
 export class ValueComputed<T> {
     _getSubscription: () => ValueSubscription;
@@ -31,39 +32,43 @@ export class ValueComputed<T> {
         type ConnectionDataType = {
             subscription: ValueSubscription,
             self: ValueConnection<T>,
-            target: ValueLayzy<ValueConnection<K>>,
+            target: ValueConnection<K>,
         };
+
+        const getNewTarget = (self: ValueConnection<T>): ValueConnection<K> =>
+            swithFunc(self.getValue()).bind();
 
         const state: ValueLayzy<ConnectionDataType> = new ValueLayzy({
             create: (): ConnectionDataType => {
                 const self = this.bind();
-                
                 return {
                     subscription: new ValueSubscription(),
                     self,
-                    target: new ValueLayzy({
-                        create: () => swithFunc(self.getValue()).bind(),
-                        drop: (conn: ValueConnection<K>) => conn.disconnect()
-                    })
+                    target: getNewTarget(self)
                 }
             },
             drop: (conn: ConnectionDataType) => {
                 conn.self.disconnect();
-                conn.target.clear();
+                conn.target.disconnect();
             }
         });
 
         state.onNew((innerState: ConnectionDataType) => {
             innerState.self.onNotify(() => {
-                innerState.target.clear();
-                innerState.target.getValue();     
+                const newTarget = getNewTarget(innerState.self);
+
+                newTarget.onNotify(() => {
+                    innerState.subscription.notify();
+                });
+
+                innerState.target.disconnect();
+                innerState.target = newTarget;
+
                 innerState.subscription.notify();
             });
 
-            innerState.target.onNew((target) => {
-                target.onNotify(() => {
-                    innerState.subscription.notify();
-                });
+            innerState.target.onNotify(() => {
+                innerState.subscription.notify();
             });
 
             innerState.subscription.onDown(() => {
@@ -73,7 +78,7 @@ export class ValueComputed<T> {
 
         return new ValueComputed(
             () => state.getValue().subscription,
-            (): K => state.getValue().target.getValue().getValue()
+            (): K => state.getValue().target.getValue()
         );
     }
 

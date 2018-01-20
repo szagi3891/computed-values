@@ -34,7 +34,6 @@ export class ValueSubscription {
                 for (const item of this._onDown) {
                     item();
                 }
-                this._onDown = [];
             }
         }
     }

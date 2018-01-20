@@ -75,4 +75,32 @@ describe('SwitchMap', () => {
         expect(outConnection2.getValue()).toBe('hhh');
         expect(outConnection3.getValue()).toBe('hhh');
     });
+
+    it('Test notyfikacji na starcie', () => {
+
+        const id = new Value(2);
+
+        const record2 = new Value('data (id2)');
+        const record3 = new Value('data (id3)');
+
+        const out = id.asComputed().switchMap((id: number): ValueComputed<string> => {
+            if (id === 2) {
+                return record2.asComputed();
+            }
+            return record3.asComputed();
+        });
+
+        let refreshCount = 0;
+        const outConnection = out.connect(() => {
+            refreshCount++;
+        });
+
+        expect(refreshCount).toBe(0);
+        expect(outConnection.getValue()).toBe('data (id2)');
+
+        record2.setValue('hhh');
+
+        expect(refreshCount).toBe(1);
+        expect(outConnection.getValue()).toBe('hhh');
+    });
 });
