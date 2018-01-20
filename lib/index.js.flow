@@ -2,11 +2,10 @@
 
 import { Value } from './Value';
 import { ValueComputed } from './ValueComputed';
-import { combineValue, combineValueArr } from './combineValue';
+import { ValueConnection } from './ValueConnection';
 
 export {
     Value,
     ValueComputed,
-    combineValue,
-    combineValueArr
+    ValueConnection
 };

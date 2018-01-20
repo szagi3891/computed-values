@@ -1,6 +1,6 @@
 //@flow
 
-import { ValueSubscription } from './ValueSubscription';
+import { Subscription } from './Subscription';
 import { ValueConnection } from './ValueConnection';
 import { pushToRefresh } from './transaction';
 import { Value } from './Value';
@@ -9,12 +9,28 @@ import { ValueLayzy } from './ValueLayzy';
 import { map } from './operators/map';
 import { debounceTime } from './operators/debounceTime';
 import { switchMap } from './operators/switchMap';
+import { combine } from './operators/combine';
+
+const combineArray = <A,R>(
+    arr: Array<ValueComputed<A>>,
+    combineFunc: ((arr: Array<A>) => R)
+): ValueComputed<R> => {
+
+    const arrBind = arr.map(arrItem => (() => arrItem.bind()));
+
+    const [getValueSubscription, getResult] = combine(arrBind, combineFunc);
+
+    return new ValueComputed(
+        getValueSubscription,
+        getResult
+    );
+}
 
 export class ValueComputed<T> {
-    _getSubscription: () => ValueSubscription;
+    _getSubscription: () => Subscription;
     _getValue: () => T;
 
-    constructor(getSubscription: () => ValueSubscription, getValue: () => T) {
+    constructor(getSubscription: () => Subscription, getValue: () => T) {
         this._getSubscription = getSubscription;
         this._getValue = getValue;
     }
@@ -53,6 +69,32 @@ export class ValueComputed<T> {
         return this;
 
         //TODO - !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    }
+
+    static combine<A, B, R>(
+        a: ValueComputed<A>,
+        b: ValueComputed<B>,
+        combine: ((a: A, b: B) => R)
+    ): ValueComputed<R> {
+        //$FlowFixMe
+        return combineArray([a,b], (arr) => combine(...arr));
+    }
+
+    static combine3<A, B, C, R>(
+        a: ValueComputed<A>,
+        b: ValueComputed<B>,
+        c: ValueComputed<C>,
+        combine: ((a: A, b: B, c: C) => R)
+    ): ValueComputed<R> {   
+        //$FlowFixMe
+        return combineArray([a,b,c], (arr) => combine(...arr));
+    }
+
+    static combineArray<A,R>(
+        arr: Array<ValueComputed<A>>,
+        combineFunc: ((arr: Array<A>) => R)
+    ): ValueComputed<R> {
+        return combineArray(arr, combineFunc);
     }
 
     bind(): ValueConnection<T> {

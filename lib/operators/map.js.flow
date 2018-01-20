@@ -1,6 +1,6 @@
 //@flow
 
-import { ValueSubscription } from '../ValueSubscription';
+import { Subscription } from '../Subscription';
 import { ValueConnection } from '../ValueConnection';
 import { Value } from '../Value';
 import { ValueLayzy } from '../ValueLayzy';
@@ -8,12 +8,12 @@ import { ValueLayzy } from '../ValueLayzy';
 export const map = <T,M>(
     parentBind: () => ValueConnection<T>,
     mapFun: (value: T) => M
-): [() => ValueSubscription, () => M] => {
+): [() => Subscription, () => M] => {
 
     type InnerType = {
         connection: ValueConnection<T>,
         result: ValueLayzy<M>,
-        subscription: ValueSubscription,
+        subscription: Subscription,
     };
 
     const state: ValueLayzy<InnerType> = new ValueLayzy({
@@ -26,7 +26,7 @@ export const map = <T,M>(
                     create: () => mapFun(connection.getValue()),
                     drop: null
                 }),
-                subscription: new ValueSubscription()
+                subscription: new Subscription()
             });
         },
         drop: (inner: InnerType) => inner.connection.disconnect()
@@ -43,7 +43,7 @@ export const map = <T,M>(
     });
 
     return [
-        (): ValueSubscription => state.getValue().subscription,
+        (): Subscription => state.getValue().subscription,
         (): M => state.getValue().result.getValue()
     ];
 };
