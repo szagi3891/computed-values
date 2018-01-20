@@ -66,6 +66,14 @@ export class ValueComputed<T> {
         );
     }
 
+    static of<K>(value: K): ValueComputed<K> {
+        const subscription = new Subscription();
+        return new ValueComputed(
+            () => subscription,
+            () => value
+        );
+    }
+
     static create<K>(initValue: K, fnCreate: (fnInner: ((setValue: K)=>void)) => (() => void)): ValueComputed<K> {
         
         type DataInnerType = {

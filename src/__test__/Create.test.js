@@ -77,4 +77,13 @@ describe('SwitchMap', () => {
         expect(out2.getValue()).toBe(12);
 
     });
+
+    it('ValueComputed.of', () => {
+        const aa = ValueComputed.of(33);
+
+        const connect = aa.connect(() => {   
+        });
+
+        expect(connect.getValue()).toBe(33);
+    })
 });
