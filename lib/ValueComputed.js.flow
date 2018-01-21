@@ -10,6 +10,7 @@ import { map } from './operators/map';
 import { debounceTime } from './operators/debounceTime';
 import { switchMap } from './operators/switchMap';
 import { combine } from './operators/combine';
+import { create } from './operators/create';
 
 const combineArray = <A,R>(
     arr: Array<ValueComputed<A>>,
@@ -74,37 +75,11 @@ export class ValueComputed<T> {
     }
 
     static create<K>(initValue: K, fnCreate: (fnInner: ((setValue: K)=>void)) => (() => void)): ValueComputed<K> {
-        
-        type DataInnerType = {
-            subscription: Subscription,
-            value: K
-        };
-
-        const state: ValueLayzy<DataInnerType> = new ValueLayzy({
-            create: () => {
-                return {
-                    subscription: new Subscription(),
-                    value: initValue
-                };
-            },
-            drop: null
-        });
-
-        state.onNew((stateInner) => {
-            const unsubscribe = fnCreate((newValue: K) => {
-                stateInner.value = newValue;
-                stateInner.subscription.notify();
-            });
-    
-            stateInner.subscription.onDown(() => {
-                unsubscribe();
-                state.clear();
-            });
-        });
+        const [getValueSubscription, getResult] = create(initValue, fnCreate);
 
         return new ValueComputed(
-            () => state.getValue().subscription,
-            () => state.getValue().value
+            getValueSubscription,
+            getResult
         );
     }
 
