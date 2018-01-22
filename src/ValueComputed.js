@@ -1,16 +1,16 @@
 //@flow
 
-import { Subscription } from './Subscription';
+import { Subscription } from './Utils/Subscription';
 import { ValueConnection } from './ValueConnection';
 import { pushToRefresh } from './transaction';
 import { Value } from './Value';
 import { ValueLayzy } from './ValueLayzy';
 
-import { map } from './operators/map';
-import { debounceTime } from './operators/debounceTime';
-import { switchMap } from './operators/switchMap';
-import { combine } from './operators/combine';
-import { create } from './operators/create';
+import { map } from './Operators/map';
+import { debounceTime } from './Operators/debounceTime';
+import { switchMap } from './Operators/switchMap';
+import { combine } from './Operators/combine';
+import { create } from './Operators/create';
 
 const combineArray = <A,R>(
     arr: Array<ValueComputed<A>>,

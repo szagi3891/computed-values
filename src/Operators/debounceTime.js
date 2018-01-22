@@ -1,9 +1,10 @@
 //@flow
 
-import { Subscription } from '../Subscription';
+import { Subscription } from '../Utils/Subscription';
 import { ValueConnection } from '../ValueConnection';
 import { Value } from '../Value';
 import { ValueLayzy } from '../ValueLayzy';
+import { Timer } from '../Utils/Timer';
 
 export const debounceTime = <T>(
     parentBind: () => ValueConnection<T>,
@@ -11,34 +12,35 @@ export const debounceTime = <T>(
 ): [() => Subscription, () => T] => {
     type InnerType = {
         subscription: Subscription,
-        timer: ValueLayzy<TimeoutID>,
-        connection: ValueLayzy<ValueConnection<T>>
+        timer: ValueLayzy<Timer>,
+        connection: ValueLayzy<ValueConnection<T>>,
+        value: ValueLayzy<T>,
     };
 
     const inner: ValueLayzy<InnerType> = new ValueLayzy({
         create: (): InnerType => {
             const subscription = new Subscription();
-
-            const timer: ValueLayzy<TimeoutID> = new ValueLayzy({
-                create: () => {
-                    return setTimeout(() => {
-                        subscription.notify();
-                                                    //TODO - robić podobnie z timerem
-                                                    //odpalić timer bez callbacka, a potem się dopiero podpiąć callback
-                    }, timeout);
-                },
-                drop: (timerId: TimeoutID) => clearTimeout(timerId)
-            });
     
             const connection: ValueLayzy<ValueConnection<T>> = new ValueLayzy({
                 create: () => parentBind(),
                 drop: (conn) => conn.disconnect()
             });
 
+            const value = new ValueLayzy({
+                create: () => connection.getValue().getValue(),
+                drop: null
+            });
+
+            const timer: ValueLayzy<Timer> = new ValueLayzy({
+                create: () => new Timer(timeout),
+                drop: (timer: Timer) => timer.drop()
+            });
+
             return {
                 subscription,
                 timer,
-                connection
+                connection,
+                value
             };
         },
         drop: (inner: InnerType) => {
@@ -52,6 +54,11 @@ export const debounceTime = <T>(
             inner.clear();
         });
 
+        innerValue.timer.onNew((timer: Timer) => {
+            innerValue.value.clear();
+            innerValue.subscription.notify();
+        });
+
         innerValue.connection.onNew((connectionInner) => {
             connectionInner.onNotify(() => {
                 innerValue.timer.clear();
@@ -62,6 +69,6 @@ export const debounceTime = <T>(
 
     return [
         (): Subscription => inner.getValue().subscription,
-        (): T => inner.getValue().connection.getValue().getValue()
+        (): T => inner.getValue().value.getValue()
     ];
 };

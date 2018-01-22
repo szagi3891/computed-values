@@ -1,6 +1,6 @@
 //@flow
  
-import { Subscription } from './Subscription';
+import { Subscription } from './Utils/Subscription';
 
 export class ValueConnection<T> {
     _connect: bool;

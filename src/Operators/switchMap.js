@@ -1,6 +1,6 @@
 //@flow
 
-import { Subscription } from '../Subscription';
+import { Subscription } from '../Utils/Subscription';
 import { ValueConnection } from '../ValueConnection';
 import { Value } from '../Value';
 import { ValueLayzy } from '../ValueLayzy';
