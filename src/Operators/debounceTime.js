@@ -52,8 +52,10 @@ export const debounceTime = <T>(
         });
 
         innerValue.timer.onNew((timer: Timer) => {
-            innerValue.value.clear();
-            innerValue.subscription.notify();
+            timer.onReady(() => {
+                innerValue.value.clear();
+                innerValue.subscription.notify();
+            });
         });
 
         innerValue.connection.onNotify(() => {
