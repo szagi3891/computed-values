@@ -4,7 +4,7 @@ import { Subscription } from './Utils/Subscription';
 import { Connection } from './Connection';
 import { pushToRefresh } from './transaction';
 import { Value } from './Value';
-import { ValueLayzy } from './ValueLayzy';
+import { ValueLayzy } from './Utils/ValueLayzy';
 
 import { map } from './Operators/map';
 import { debounceTime } from './Operators/debounceTime';

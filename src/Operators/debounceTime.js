@@ -3,7 +3,7 @@
 import { Subscription } from '../Utils/Subscription';
 import { Connection } from '../Connection';
 import { Value } from '../Value';
-import { ValueLayzy } from '../ValueLayzy';
+import { ValueLayzy } from '../Utils/ValueLayzy';
 import { Timer } from '../Utils/Timer';
 
 export const debounceTime = <T>(
