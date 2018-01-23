@@ -1,12 +1,12 @@
 import { Value } from '../Value';
-import { ValueComputed } from '../ValueComputed';
+import { Computed } from '../Computed';
 
 describe('Combine Value', () => {
     it('Basic', () => {
         const val1 = new Value(0);
         const val2 = new Value(2);
         
-        const sum = ValueComputed.combine(
+        const sum = Computed.combine(
             val1.asComputed(),
             val2.asComputed(),
             (val1, val2) => val1 + val2

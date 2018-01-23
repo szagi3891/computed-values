@@ -1,48 +1,46 @@
 //@flow
 
-import { Subscription } from '../Subscription';
+import { Subscription } from '../Utils/Subscription';
 import { ValueConnection } from '../ValueConnection';
 import { Value } from '../Value';
 import { ValueLayzy } from '../ValueLayzy';
+import { Timer } from '../Utils/Timer';
 
-export const debounceTime = <T>(
+export const delay = <T>(
     parentBind: () => ValueConnection<T>,
     timeout: number
 ): [() => Subscription, () => T] => {
     type InnerType = {
         subscription: Subscription,
-        timer: ValueLayzy<TimeoutID>,
-        connection: ValueLayzy<ValueConnection<T>>
+        timers: Array<Timer>,
+        connection: ValueLayzy<ValueConnection<T>>,
     };
 
     const inner: ValueLayzy<InnerType> = new ValueLayzy({
         create: (): InnerType => {
             const subscription = new Subscription();
-
-            const timer: ValueLayzy<TimeoutID> = new ValueLayzy({
-                create: () => {
-                    return setTimeout(() => {
-                        subscription.notify();
-                                                    //TODO - robić podobnie z timerem
-                                                    //odpalić timer bez callbacka, a potem się dopiero podpiąć callback
-                    }, timeout);
-                },
-                drop: (timerId: TimeoutID) => clearTimeout(timerId)
-            });
     
             const connection: ValueLayzy<ValueConnection<T>> = new ValueLayzy({
                 create: () => parentBind(),
                 drop: (conn) => conn.disconnect()
             });
 
+            const TimerList: TimerList = new TimerList();
+    
+            const value = new ValueLayzy({
+                create: () => connection.getValue().getValue(),
+                drop: null
+            });
+
             return {
                 subscription,
-                timer,
+                timers: TimerList,
+                value,
                 connection
             };
         },
         drop: (inner: InnerType) => {
-            inner.timer.clear();
+            inner.TimerList.clear();
             inner.connection.clear();
         }
     });
@@ -52,16 +50,25 @@ export const debounceTime = <T>(
             inner.clear();
         });
 
+        innerValue.TimerList.onNew((timer: Timer) => {
+            const valueSnapshot = innerValue.connection.getValue().getValue()
+
+            timer.onReady(() => {
+                //innerValue.value.clear();
+                value.set(valueSnapshot);
+                innerValue.subscription.notify();
+            });
+        });
+
         innerValue.connection.onNew((connectionInner) => {
             connectionInner.onNotify(() => {
-                innerValue.timer.clear();
-                innerValue.timer.getValue();
+                innerValue.timer.createNew();
             });
         })
     });
 
     return [
         (): Subscription => inner.getValue().subscription,
-        (): T => inner.getValue().connection.getValue().getValue()
+        (): T => inner.getValue().value.getValue()
     ];
 };

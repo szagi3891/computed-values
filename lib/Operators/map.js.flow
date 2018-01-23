@@ -1,19 +1,19 @@
 //@flow
 
-import { Subscription } from '../Subscription';
-import { ValueConnection } from '../ValueConnection';
+import { Subscription } from '../Utils/Subscription';
+import { Connection } from '../Connection';
 import { Value } from '../Value';
 import { ValueLayzy } from '../ValueLayzy';
 
 export const map = <T,M>(
-    parentBind: () => ValueConnection<T>,
+    parentBind: () => Connection<T>,
     mapFun: (value: T) => M
 ): [() => Subscription, () => M] => {
 
     type InnerType = {
-        connection: ValueConnection<T>,
-        result: ValueLayzy<M>,
         subscription: Subscription,
+        connection: Connection<T>,
+        result: ValueLayzy<M>,
     };
 
     const state: ValueLayzy<InnerType> = new ValueLayzy({
@@ -21,12 +21,12 @@ export const map = <T,M>(
             const connection = parentBind();
 
             return ({
+                subscription: new Subscription(),
                 connection,
                 result: new ValueLayzy({
                     create: () => mapFun(connection.getValue()),
                     drop: null
-                }),
-                subscription: new Subscription()
+                })
             });
         },
         drop: (inner: InnerType) => inner.connection.disconnect()

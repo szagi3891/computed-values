@@ -1,22 +1,22 @@
 //@flow
 
-import { Subscription } from '../Subscription';
-import { ValueConnection } from '../ValueConnection';
+import { Subscription } from '../Utils/Subscription';
+import { Connection } from '../Connection';
 import { Value } from '../Value';
 import { ValueLayzy } from '../ValueLayzy';
 
 export const switchMap = <T, K>(
-    bindSelf: () => ValueConnection<T>,
-    swithFunc: ((value: T) => ValueConnection<K>)
+    bindSelf: () => Connection<T>,
+    swithFunc: ((value: T) => Connection<K>)
 ): [() => Subscription, () => K] => {
 
     type ConnectionDataType = {
         subscription: Subscription,
-        self: ValueConnection<T>,
-        target: ValueConnection<K>,
+        self: Connection<T>,
+        target: Connection<K>,
     };
 
-    const getNewTarget = (self: ValueConnection<T>): ValueConnection<K> =>
+    const getNewTarget = (self: Connection<T>): Connection<K> =>
         swithFunc(self.getValue());
 
     const state: ValueLayzy<ConnectionDataType> = new ValueLayzy({

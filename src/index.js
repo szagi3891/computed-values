@@ -1,13 +1,13 @@
 //@flow
 
 import { Value } from './Value';
-import { ValueComputed } from './ValueComputed';
-import { ValueConnection } from './ValueConnection';
+import { Computed } from './Computed';
+import { Connection } from './Connection';
 import { transaction } from './transaction';
 
 export {
     Value,
-    ValueComputed,
-    ValueConnection,
+    Computed,
+    Connection,
     transaction
 };

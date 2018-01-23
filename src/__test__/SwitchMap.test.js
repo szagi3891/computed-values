@@ -1,4 +1,4 @@
-import { Value, ValueComputed } from '..';
+import { Value, Computed } from '..';
 
 describe('SwitchMap', () => {
     it('Podstawowy test', () => {
@@ -8,7 +8,7 @@ describe('SwitchMap', () => {
         const record2 = new Value('data (id2)');
         const record3 = new Value('data (id3)');
 
-        const switchMapFn = (id: number): ValueComputed<string> => {
+        const switchMapFn = (id: number): Computed<string> => {
             if (id === 2) {
                 return record2.asComputed();
             }
@@ -83,7 +83,7 @@ describe('SwitchMap', () => {
         const record2 = new Value('data (id2)');
         const record3 = new Value('data (id3)');
 
-        const out = id.asComputed().switchMap((id: number): ValueComputed<string> => {
+        const out = id.asComputed().switchMap((id: number): Computed<string> => {
             if (id === 2) {
                 return record2.asComputed();
             }

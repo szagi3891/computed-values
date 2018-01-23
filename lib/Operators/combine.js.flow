@@ -1,18 +1,18 @@
 //@flow
 
-import { Subscription } from '../Subscription';
-import { ValueConnection } from '../ValueConnection';
+import { Subscription } from '../Utils/Subscription';
+import { Connection } from '../Connection';
 import { Value } from '../Value';
 import { ValueLayzy } from '../ValueLayzy';
 
 export const combine = <A,R>(
-    bindArr: Array<() => ValueConnection<A>>,
+    bindArr: Array<() => Connection<A>>,
     combine: ((arr: Array<A>) => R)
 ): [() => Subscription, () => R] => {
 
     type ConnectionDataType = {
         subscription: Subscription,
-        connections: Array<ValueConnection<A>>,
+        connections: Array<Connection<A>>,
         result: ValueLayzy<R>
     };
 

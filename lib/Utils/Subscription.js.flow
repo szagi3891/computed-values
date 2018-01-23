@@ -1,5 +1,5 @@
 //@flow
-import { transaction } from './transaction';
+import { transaction } from '../transaction';
 
 export class Subscription {
     _subscription: Map<mixed, () => void>;

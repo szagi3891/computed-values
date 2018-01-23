@@ -1,4 +1,4 @@
-import { Value, ValueComputed } from '..';
+import { Value, Computed } from '..';
 
 class Source {
     _callback: Map<mixed, (data: K) => void>;
@@ -29,7 +29,7 @@ describe('SwitchMap', () => {
 
         const source = new Source();
 
-        const out = ValueComputed.create(2, (setValue) => {
+        const out = Computed.create(2, (setValue) => {
 
             const unsub = source.bind((nextValue: number) => {
                 setValue(nextValue);
@@ -77,8 +77,8 @@ describe('SwitchMap', () => {
 
     });
 
-    it('ValueComputed.of', () => {
-        const aa = ValueComputed.of(33);
+    it('Computed.of', () => {
+        const aa = Computed.of(33);
 
         const connect = aa.connect(() => {   
         });

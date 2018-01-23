@@ -1,7 +1,7 @@
 //@flow
 
 import { Subscription } from './Utils/Subscription';
-import { ValueComputed } from './ValueComputed';
+import { Computed } from './Computed';
 import { transaction } from './transaction';
 
 export class Value<T> {
@@ -31,8 +31,8 @@ export class Value<T> {
         });
     }
 
-    asComputed(): ValueComputed<T> {
-        return new ValueComputed(
+    asComputed(): Computed<T> {
+        return new Computed(
             () => this._subscription,
             () => this._value
         );

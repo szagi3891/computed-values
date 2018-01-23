@@ -1,8 +1,8 @@
 //@flow
  
-import { Subscription } from './Subscription';
+import { Subscription } from './Utils/Subscription';
 
-export class ValueConnection<T> {
+export class Connection<T> {
     _connect: bool;
     _getValue: () => T;
     _notifyCallbacks: Array<() => void>;
