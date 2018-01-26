@@ -5,6 +5,7 @@ import { Connection } from '../Connection';
 import { Value } from '../Value';
 import { ValueLayzy } from '../Utils/ValueLayzy';
 import { Timer } from '../Utils/Timer';
+import { pushToRefresh } from '../transaction';
 
 export const debounceTime = <T>(
     parentBind: () => Connection<T>,
@@ -14,7 +15,7 @@ export const debounceTime = <T>(
         subscription: Subscription,
         connection: Connection<T>,
         timer: ValueLayzy<Timer>,
-        value: T,
+        value: ValueLayzy<T>,
     };
 
     const inner: ValueLayzy<InnerType> = new ValueLayzy({
@@ -22,6 +23,11 @@ export const debounceTime = <T>(
             const subscription = new Subscription();
     
             const connection: Connection<T> = parentBind();
+
+            const value = new ValueLayzy({
+                create: () => connection.getValue(),
+                drop: null
+            });
 
             const timer: ValueLayzy<Timer> = new ValueLayzy({
                 create: () => new Timer(timeout),
@@ -32,7 +38,7 @@ export const debounceTime = <T>(
                 subscription,
                 connection,
                 timer,
-                value: connection.getValue()
+                value
             };
         },
         drop: (inner: InnerType) => {
@@ -48,7 +54,7 @@ export const debounceTime = <T>(
 
         innerValue.timer.onNew((timer: Timer) => {
             timer.onReady(() => {
-                innerValue.value = innerValue.connection.getValue()
+                innerValue.value.clear();
                 innerValue.subscription.notify();
             });
         });
@@ -60,6 +66,6 @@ export const debounceTime = <T>(
 
     return [
         (): Subscription => inner.getValue().subscription,
-        (): T => inner.getValue().value
+        (): T => inner.getValue().value.getValue()
     ];
 };

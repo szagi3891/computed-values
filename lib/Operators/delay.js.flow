@@ -72,6 +72,8 @@ export const delay = <T>(
 
         innerValue.connection.onNotify(() => {
 
+            console.info('NOTIFY');
+
             //Pobrać wartość z parenta możemy pobrać w momencie gdy sieć znajduje się w trybie "wyliczania"
             pushToRefresh(() => {
                 const valueSnapshot = innerValue.connection.getValue();
