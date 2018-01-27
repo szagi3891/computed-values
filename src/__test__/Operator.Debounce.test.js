@@ -56,5 +56,7 @@ describe('Debounce', () => {
 
         expect(refresh).toBe(2);
         expect(connection.getValue()).toBe(555);
+
+        connection.disconnect();
     });
 });

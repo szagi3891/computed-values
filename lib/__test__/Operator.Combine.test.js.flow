@@ -29,5 +29,7 @@ describe('Combine Value', () => {
 
         expect(refresh).toBe(2);
         expect(connection.getValue()).toBe(15);
+
+        connection.disconnect();
     });
 });

@@ -8,7 +8,6 @@ import { ValueLayzy } from './Utils/ValueLayzy';
 
 import { map } from './Operators/map';
 import { debounceTime } from './Operators/debounceTime';
-//import { delay } from './Operators/delay';
 import { switchMap } from './Operators/switchMap';
 import { combine } from './Operators/combine';
 import { create } from './Operators/create';
@@ -67,17 +66,6 @@ export class Computed<T> {
         );
     }
 
-    /*
-    delay(timeout: number): Computed<T> {
-        const [getValueSubscription, getResult] = delay(() => this.bind(), timeout);
-
-        return new Computed(
-            getValueSubscription,
-            getResult
-        );
-    }
-    */
-
     static of<K>(value: K): Computed<K> {
         const subscription = new Subscription();
         return new Computed(
@@ -98,7 +86,7 @@ export class Computed<T> {
     distinctUntilChanged(): Computed<T> {
         return this;
 
-        //TODO - !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //TODO - to remove
     }
 
     static combine<A, B, R>(
@@ -146,7 +134,7 @@ export class Computed<T> {
             this._getSubscription(),
             this._getValue
         );
-                                                    //TODO - w Connection dodać metodę onRefresh
+
         connection.onNotify(() => {
             pushToRefresh(onRefresh);
         });

@@ -27,5 +27,7 @@ describe('', () => {
         
         expect(refreshCount).toBe(2);
         expect(connection.getValue()).toBe('dsadsa 7');
+
+        connection.disconnect();
     });
 });
