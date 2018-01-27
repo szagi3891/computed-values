@@ -7,7 +7,6 @@ import { Value } from './Value';
 import { ValueLayzy } from './Utils/ValueLayzy';
 
 import { map } from './Operators/map';
-import { debounceTime } from './Operators/debounceTime';
 import { switchMap } from './Operators/switchMap';
 import { combine } from './Operators/combine';
 import { create } from './Operators/create';
@@ -45,6 +44,20 @@ export class Computed<T> {
         );
     }
 
+    /*
+    switch<T: Computed<K>>(): Computed<K> { ---> T przy założeniu że T to Computed<K>
+        const [getValueSubscription, getResult] = switchMap(
+            () => this.bind(),
+            (value: T) => value.bind()
+        );
+
+        return new Computed(
+            getValueSubscription,
+            getResult
+        );
+    }
+    */
+
     switchMap<K>(swithFunc: ((value: T) => Computed<K>)): Computed<K> {
         const [getValueSubscription, getResult] = switchMap(
             () => this.bind(),
@@ -57,6 +70,7 @@ export class Computed<T> {
         );
     }
 
+    /*
     debounceTime(timeout: number): Computed<T> {
         const [getValueSubscription, getResult] = debounceTime(() => this.bind(), timeout);
 
@@ -65,6 +79,7 @@ export class Computed<T> {
             getResult
         );
     }
+    */
 
     static of<K>(value: K): Computed<K> {
         const subscription = new Subscription();

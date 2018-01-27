@@ -1,5 +1,5 @@
 //@flow
-import { safeIterate } from './SafeIterate';
+import { copyFrom } from './SafeIterate';
 
 export class Timer {
     _timer: TimeoutID;
@@ -14,8 +14,7 @@ export class Timer {
 
             this._readyCallbacks = null;
 
-            const toRun = safeIterate(callbacks);
-            for (const callbackItem of callbacks) {
+            for (const callbackItem of copyFrom(callbacks)) {
                 callbackItem();
             }
         }, timeout);

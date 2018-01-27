@@ -1,5 +1,5 @@
 //@flow
-import { safeIterate } from './SafeIterate';
+import { copyFrom } from './SafeIterate';
 
 type CallbacksType<G> = {
     create: () => G,
@@ -30,8 +30,7 @@ export class ValueLayzy<G> {
         const newValue = this._callbacks.create();
         this._value = { value: newValue };
 
-        const toRun = safeIterate(this._onNew);
-        for (const onNewItem of toRun) {
+        for (const onNewItem of copyFrom(this._onNew)) {
             onNewItem(newValue);
         }
 

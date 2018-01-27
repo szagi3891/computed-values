@@ -1,6 +1,6 @@
 //@flow
 import { transaction } from '../transaction';
-import { safeIterate } from './SafeIterate';
+import { copyFrom } from './SafeIterate';
 
 export class Subscription {
     _subscription: Map<mixed, () => void>;
@@ -12,8 +12,7 @@ export class Subscription {
     }
 
     notify() {
-        const toRun = safeIterate(this._subscription.values());
-        for (const item of toRun) {
+        for (const item of copyFrom(this._subscription.values())) {
             transaction(() => {
                 item();
             });
@@ -33,8 +32,7 @@ export class Subscription {
             this._subscription.delete(token);
 
             if (this._subscription.size === 0) {
-                const toRun = safeIterate(this._onDown);
-                for (const item of toRun) {
+                for (const item of copyFrom(this._onDown)) {
                     item();
                 }
             }
