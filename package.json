@@ -9,7 +9,8 @@
   "scripts": {
     "build": "rm -Rf lib && yarn run flow && yarn run test && babel src/ -d lib && flow-copy-source src lib",
     "flow": "flow status",
-    "test": "jest"
+    "test": "jest",
+    "coverage": "jest --no-cache --coverage"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

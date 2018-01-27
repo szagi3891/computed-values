@@ -5,7 +5,6 @@ import { Connection } from '../Connection';
 import { Value } from '../Value';
 import { ValueLayzy } from '../Utils/ValueLayzy';
 import { Timer } from '../Utils/Timer';
-import { pushToRefresh } from '../transaction';
 
 export const debounceTime = <T>(
     parentBind: () => Connection<T>,
