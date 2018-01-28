@@ -1,56 +1,48 @@
 //@flow
 import { transaction } from '../transaction';
-import { copyFrom } from './SafeIterate';
+import { EventEmitter } from './EventEmitter';
 
 export class Subscription {
-    _subscription: Map<mixed, () => void>;
-    _onUp: Set<() => void>;
-    _onDown: Set<() => void>;
+    _subscription: EventEmitter<void>;
+    _up: EventEmitter<void>;
+    _down: EventEmitter<void>;
 
     constructor() {
-        this._subscription = new Map();
-        this._onUp = new Set();
-        this._onDown = new Set();
+        this._subscription = new EventEmitter();
+        this._up = new EventEmitter();
+        this._down = new EventEmitter();
     }
 
     notify() {
-        for (const item of copyFrom(this._subscription.values())) {
-            transaction(() => {
-                item();
-            });
-        }
+        transaction(() => {
+            this._subscription.emit();
+        });
     }
 
-    onUp(callback: () => void) {
-        this._onUp.add(callback);
+    onUp(callback: () => void): (() => void) {
+        return this._up.on(callback);
     }
 
-    onDown(callback: () => void) {
-        this._onDown.add(callback);
+    onDown(callback: () => void): (() => void) {
+        return this._down.on(callback);
     }
 
     onDownRemove(callback: () => void) {
-        this._onDown.delete(callback);
+        this._down.remove(callback);
     }
 
     bind(notify: () => void): () => void {
-        const token = {};
+        const unsubscribeNotify = this._subscription.on(notify);
 
-        this._subscription.set(token, notify);
-
-        if (this._subscription.size === 1) {
-            for (const item of copyFrom(this._onUp.values())) {
-                item();
-            }
+        if (this._subscription.count() === 1) {
+            this._up.emit();
         }
 
         return () => {
-            this._subscription.delete(token);
+            unsubscribeNotify();
 
-            if (this._subscription.size === 0) {
-                for (const item of copyFrom(this._onDown.values())) {
-                    item();
-                }
+            if (this._subscription.count() === 0) {
+                this._down.emit();
             }
         }
     }
