@@ -45,13 +45,6 @@ export class Value<T> {
         return this._value;
     }
 
-    update(fnUpdate: (old: T) => T) {
-        transaction(() => {
-            this._value = fnUpdate(this._value);
-            this._subscription.notify();
-        });
-    }
-
     asComputed(): Computed<T> {
         return new Computed(
             () => this._subscription,

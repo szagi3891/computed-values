@@ -36,6 +36,6 @@ export class Connection<T> {
             return this._getValue();
         }
 
-        throw Error('Połączenie jest rozłączone');
+        throw Error('Connection is disconnect');
     }
 }
