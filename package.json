@@ -1,6 +1,6 @@
 {
   "name": "computed-values",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Computed values",
   "main": "lib/index.js",
   "repository": "https://github.com/szagi3891/computed-values",
@@ -23,5 +23,8 @@
     "flow-typed": "^2.2.3",
     "jest": "^22.1.1"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "jest": {
+    "rootDir": "./src"
+  }
 }

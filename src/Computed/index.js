@@ -8,7 +8,6 @@ import { Value } from '../Value';
 import { map } from './Operator.Map';
 import { switchMap } from './Operator.SwitchMap';
 import { combine } from './Operator.Combine';
-import { create } from './Operator.Create';
 
 const combineArray = <A,R>(
     arr: Array<Computed<A>>,
@@ -85,15 +84,6 @@ export class Computed<T> {
         return new Computed(
             () => subscription,
             () => value
-        );
-    }
-
-    static create<K>(initValue: K, fnCreate: (fnInner: ((setValue: K)=>void)) => (() => void)): Computed<K> {
-        const [getValueSubscription, getResult] = create(initValue, fnCreate);
-
-        return new Computed(
-            getValueSubscription,
-            getResult
         );
     }
 

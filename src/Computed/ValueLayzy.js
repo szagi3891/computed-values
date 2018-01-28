@@ -23,10 +23,6 @@ export class ValueLayzy<G> {
             return val.value;
         }
 
-        return this._create();
-    }
-
-    _create(): G {
         const newValue = this._callbacks.create();
         this._value = { value: newValue };
 
@@ -46,11 +42,6 @@ export class ValueLayzy<G> {
             }
         }
         this._value = null;
-    }
-
-    reset() {
-        this.clear();
-        this._create();
     }
 
     onNew(callback: (data: G) => void) {

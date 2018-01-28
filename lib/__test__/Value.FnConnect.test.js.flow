@@ -29,7 +29,7 @@ describe('SwitchMap', () => {
 
         const source = new Source();
 
-        const out = Computed.create(2, (setValue) => {
+        const out = new Value(2, (setValue) => {
 
             const unsub = source.bind((nextValue: number) => {
                 setValue(nextValue);
@@ -44,7 +44,7 @@ describe('SwitchMap', () => {
         const refresh = () => {
             refreshCount++;
         };
-        const outConnect = out.connect(refresh);
+        const outConnect = out.asComputed().connect(refresh);
 
         expect(refreshCount).toBe(0);
         expect(outConnect.getValue()).toBe(2);
@@ -63,11 +63,11 @@ describe('SwitchMap', () => {
             refreshCount2++;
         };
 
-        const out2 = out.connect(refresh2);
+        const out2 = out.asComputed().connect(refresh2);
 
         expect(refreshCount).toBe(1);
         expect(refreshCount2).toBe(0);
-        expect(out2.getValue()).toBe(2);
+        expect(out2.getValue()).toBe(10);
 
         source.emit(12);
 

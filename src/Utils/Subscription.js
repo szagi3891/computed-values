@@ -4,11 +4,13 @@ import { copyFrom } from './SafeIterate';
 
 export class Subscription {
     _subscription: Map<mixed, () => void>;
-    _onDown: Array<() => void>;
+    _onUp: Set<() => void>;
+    _onDown: Set<() => void>;
 
     constructor() {
         this._subscription = new Map();
-        this._onDown = [];
+        this._onUp = new Set();
+        this._onDown = new Set();
     }
 
     notify() {
@@ -19,8 +21,16 @@ export class Subscription {
         }
     }
 
+    onUp(callback: () => void) {
+        this._onUp.add(callback);
+    }
+
     onDown(callback: () => void) {
-        this._onDown.push(callback);
+        this._onDown.add(callback);
+    }
+
+    onDownRemove(callback: () => void) {
+        this._onDown.delete(callback);
     }
 
     bind(notify: () => void): () => void {
@@ -28,11 +38,17 @@ export class Subscription {
 
         this._subscription.set(token, notify);
 
+        if (this._subscription.size === 1) {
+            for (const item of copyFrom(this._onUp.values())) {
+                item();
+            }
+        }
+
         return () => {
             this._subscription.delete(token);
 
             if (this._subscription.size === 0) {
-                for (const item of copyFrom(this._onDown)) {
+                for (const item of copyFrom(this._onDown.values())) {
                     item();
                 }
             }
