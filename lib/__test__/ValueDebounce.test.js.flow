@@ -1,4 +1,4 @@
-import { ValueDebounce } from '../ValueDebounce';
+import { ValueDebounce } from '../Extra/ValueDebounce';
 
 describe('Debounce', () => {
     it('Basic', () => {

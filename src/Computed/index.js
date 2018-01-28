@@ -1,15 +1,14 @@
 //@flow
 
-import { Subscription } from './Utils/Subscription';
-import { Connection } from './Connection';
-import { pushToRefresh } from './transaction';
-import { Value } from './Value';
-import { ValueLayzy } from './Utils/ValueLayzy';
+import { Subscription } from '../Utils/Subscription';
+import { Connection } from '../Connection';
+import { pushToRefresh } from '../transaction';
+import { Value } from '../Value';
 
-import { map } from './Operators/map';
-import { switchMap } from './Operators/switchMap';
-import { combine } from './Operators/combine';
-import { create } from './Operators/create';
+import { map } from './Operator.Map';
+import { switchMap } from './Operator.SwitchMap';
+import { combine } from './Operator.Combine';
+import { create } from './Operator.Create';
 
 const combineArray = <A,R>(
     arr: Array<Computed<A>>,

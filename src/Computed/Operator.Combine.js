@@ -2,8 +2,7 @@
 
 import { Subscription } from '../Utils/Subscription';
 import { Connection } from '../Connection';
-import { Value } from '../Value';
-import { ValueLayzy } from '../Utils/ValueLayzy';
+import { ValueLayzy } from './ValueLayzy';
 
 export const combine = <A,R>(
     bindArr: Array<() => Connection<A>>,

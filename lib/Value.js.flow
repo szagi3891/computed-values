@@ -8,9 +8,17 @@ export class Value<T> {
     _value: T;
     _subscription: Subscription;
 
-    constructor(value: T) {
+    constructor(value: T, fnCreate?: (fnInner: ((setValue: T) => void)) => (() => void)) {
         this._value = value;
         this._subscription = new Subscription();
+
+        //gdy wzrośnie ilość subskrybentów to wtedy nawiązuj połaczenie za pomocą fnInner
+
+        if (fnCreate) {
+            fnCreate((value: T) => {
+                this.setValue(value);
+            });
+        }      
     }
 
     setValue(newValue: T) {

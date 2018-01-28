@@ -1,7 +1,7 @@
 //@flow
 
-import { Computed } from './Computed';
-import { Value } from './Value';
+import { Computed } from '../Computed';
+import { Value } from '../Value';
 
 export class ValueDebounce<T> {
     +_value: Value<T>;

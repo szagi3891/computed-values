@@ -1,5 +1,5 @@
 //@flow
-import { copyFrom } from './SafeIterate';
+import { copyFrom } from '../Utils/SafeIterate';
 
 type CallbacksType<G> = {
     create: () => G,
