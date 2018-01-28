@@ -22,6 +22,6 @@ export const pushToRefresh = (funcToRefresh: () => void) => {
     if (level > 0) {
         refresh.push(funcToRefresh);
     } else {
-        throw Error('Nieprawidłowe odgałęzienie programu');
+        throw Error('The function can only be call in transcription mode.');
     }
 };
