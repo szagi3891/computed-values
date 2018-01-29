@@ -2,12 +2,13 @@
 
 import { Subscription } from '../Utils/Subscription';
 import { Connection } from '../Connection';
-import { ValueLayzy } from './ValueLayzy';
+import { ValueLayzy } from '../Utils/ValueLayzy';
+import { Box } from '../Utils/Box';
 
 export const switchMap = <T, K>(
     bindSelf: () => Connection<T>,
     swithFunc: ((value: T) => Connection<K>)
-): [() => Subscription, () => K] => {
+): [() => Subscription, () => Box<K>] => {
 
     type ConnectionDataType = {
         subscription: Subscription,
@@ -58,6 +59,6 @@ export const switchMap = <T, K>(
 
     return [
         () => state.getValue().subscription,
-        (): K => state.getValue().target.getValue()
+        (): Box<K> => state.getValue().target.getValueBox()
     ];
 }

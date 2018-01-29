@@ -1,16 +1,17 @@
 //@flow
  
 import { Subscription } from './Utils/Subscription';
+import { Box } from './Utils/Box';
 
 export class Connection<T> {
     _connect: bool;
-    _getValue: () => T;
+    _getValue: () => Box<T>;
     _notifyCallbacks: Array<() => void>;
     _disconnect: () => void;
 
     constructor(
         subscription: Subscription,
-        getValue: () => T,
+        getValue: () => Box<T>,
     ) {
         this._connect = true;
         this._getValue = getValue;
@@ -31,11 +32,15 @@ export class Connection<T> {
         this._notifyCallbacks.push(callback);
     }
 
-    getValue(): T {
+    getValueBox(): Box<T> {
         if (this._connect) {
             return this._getValue();
         }
 
         throw Error('Connection is disconnect');
+    }
+
+    getValue(): T {
+        return this.getValueBox().getValue();
     }
 }

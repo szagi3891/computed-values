@@ -4,6 +4,7 @@ import { Subscription } from '../Utils/Subscription';
 import { Connection } from '../Connection';
 import { pushToRefresh } from '../transaction';
 import { Value } from '../Value';
+import { Box } from '../Utils/Box';
 
 import { map } from './Operator.Map';
 import { switchMap } from './Operator.SwitchMap';
@@ -26,9 +27,9 @@ const combineArray = <A,R>(
 
 export class Computed<T> {
     _getSubscription: () => Subscription;
-    _getValue: () => T;
+    _getValue: () => Box<T>;
 
-    constructor(getSubscription: () => Subscription, getValue: () => T) {
+    constructor(getSubscription: () => Subscription, getValue: () => Box<T>) {
         this._getSubscription = getSubscription;
         this._getValue = getValue;
     }
@@ -68,29 +69,14 @@ export class Computed<T> {
         );
     }
 
-    /*
-    debounceTime(timeout: number): Computed<T> {
-        const [getValueSubscription, getResult] = debounceTime(() => this.bind(), timeout);
-
-        return new Computed(
-            getValueSubscription,
-            getResult
-        );
-    }
-    */
-
     static of<K>(value: K): Computed<K> {
-        const subscription = new Subscription();
-        return new Computed(
-            () => subscription,
-            () => value
-        );
+        return new Value(value).asComputed();
     }
 
     distinctUntilChanged(): Computed<T> {
         return this;
 
-        //TODO - to remove
+        //TODO - do zaimplementowania
     }
 
     static combine<A, B, R>(

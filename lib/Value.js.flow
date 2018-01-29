@@ -3,15 +3,16 @@
 import { Subscription } from './Utils/Subscription';
 import { Computed } from './Computed';
 import { transaction } from './transaction';
+import { Box } from './Utils/Box';
 
 type FuncConnectType<T> = (funcConnect: ((setValue: T) => void)) => (() => void);
 
 export class Value<T> {
-    _value: T;
+    _value: Box<T>;
     _subscription: Subscription;
 
     constructor(value: T, funcConnect?: FuncConnectType<T>) {
-        this._value = value;
+        this._value = new Box(value);
         this._subscription = new Subscription();
 
         if (funcConnect) {
@@ -36,13 +37,17 @@ export class Value<T> {
 
     setValue(newValue: T) {
         transaction(() => {
-            this._value = newValue;
+            this._value = new Box(newValue);
             this._subscription.notify();
         });
     }
 
-    getValue(): T {
+    getValueBox(): Box<T> {
         return this._value;
+    }
+
+    getValue(): T {
+        return this._value.getValue();
     }
 
     asComputed(): Computed<T> {
