@@ -4,49 +4,7 @@ import { Subscription } from '../Utils/Subscription';
 import { Connection } from '../Connection';
 import { ValueLayzy } from '../Utils/ValueLayzy';
 import { Box } from '../Utils/Box';
-
-class ResultValue<T, R> {
-    _connections: Array<Connection<T>>;
-    _combine: (arr: Array<T>) => R;
-    //TODO - Box argumentu ...
-    _result: Box<R>;
-    _isValid: bool;
-
-    constructor(connections: Array<Connection<T>>, combine: ((arr: Array<T>) => R)) {
-        this._connections = connections;
-        this._combine = combine;
-        this._result = this._getResult();
-        this._isValid = true;
-    }
-
-    _getResult(): Box<R> {
-        return new Box(
-            this._combine(
-                this._connections.map(
-                    connectionItem => connectionItem.getValueBox().getValue()
-                )
-            )
-        );
-    }
-
-    setAsNotValid() {
-        this._isValid = false;
-    }
-
-    getResult(): Box<R> {
-        if (this._isValid) {
-            return this._result;
-        }
-
-        const result = this._getResult();
-
-        this._isValid = true;
-        this._result = result;
-        this._isValid = true;
-
-        return result;
-    }
-}
+import { ResultValue } from '../Utils/ResultValue';
 
 export const combine = <A,R>(
     bindArr: Array<() => Connection<A>>,

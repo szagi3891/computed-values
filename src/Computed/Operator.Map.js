@@ -4,64 +4,31 @@ import { Subscription } from '../Utils/Subscription';
 import { Connection } from '../Connection';
 import { ValueLayzy } from '../Utils/ValueLayzy';
 import { Box } from '../Utils/Box';
+import { ResultValue } from '../Utils/ResultValue';
 
-class ResultValue<T, M> {
-    _connection: Connection<T>;
-    _mapFun: (value: T) => M;
-    //TODO - Box argumentu ...
-    _result: Box<M>;
-    _isValid: bool;
-
-    constructor(connection: Connection<T>, mapFun: (value: T) => M) {
-        this._connection = connection;
-        this._mapFun = mapFun;
-        this._result = this._getResult();
-        this._isValid = true;
-    }
-
-    _getResult(): Box<M> {
-        const result = this._mapFun(this._connection.getValueBox().getValue());
-        return new Box(result);
-    }
-
-    setAsNotValid() {
-        this._isValid = false;
-    }
-
-    getResult(): Box<M> {
-        if (this._isValid) {
-            return this._result;
-        }
-
-        const result = this._getResult();
-
-        this._isValid = true;
-        this._result = result;
-        this._isValid = true;
-
-        return result;
-    }
-}
-
-export const map = <T,M>(
+export const map = <T, R>(
     parentBind: () => Connection<T>,
-    mapFun: (value: T) => M
-): [() => Subscription, () => Box<M>] => {
+    mapFun: (value: T) => R
+): [() => Subscription, () => Box<R>] => {
 
     type InnerType = {
         subscription: Subscription,
         connection: Connection<T>,
-        result: ResultValue<T, M>,
+        result: ResultValue<T, R>,
     };
 
     const state: ValueLayzy<InnerType> = new ValueLayzy({
         create: () => {
             const connection = parentBind();
 
+            const result: ResultValue<T, R> = new ResultValue([connection], (arg: Array<T>): R => {
+                return mapFun(arg[0]);
+            });
+
             return ({
                 subscription: new Subscription(),
                 connection,
-                result: new ResultValue(connection, mapFun)
+                result
             });
         },
         drop: (inner: InnerType) => inner.connection.disconnect()
@@ -79,6 +46,6 @@ export const map = <T,M>(
 
     return [
         (): Subscription => state.getValue().subscription,
-        (): Box<M> => state.getValue().result.getResult()
+        (): Box<R> => state.getValue().result.getResult()
     ];
 };
