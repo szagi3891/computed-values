@@ -23,7 +23,7 @@ export class Connection<T> {
         });
     }
 
-    disconnect = () => {
+    disconnect() {
         this._connect = true;
         this._disconnect();
     }

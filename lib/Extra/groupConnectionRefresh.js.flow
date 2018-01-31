@@ -2,7 +2,7 @@
 
 import { Connection } from '../Connection';
 
-export const groupConnectionRefresh = (connections: Array<Connection<mixed>>, onRefresh: () => void) => {
+export const groupConnectionRefresh = (connections: Array<Connection<mixed>>, onRefresh: () => void): (() => void) => {
 
     const getValues = (): Array<mixed> => {
         return connections.map(connItem => connItem.getValueBox());
@@ -36,5 +36,19 @@ export const groupConnectionRefresh = (connections: Array<Connection<mixed>>, on
 
     for (const connItem of connections) {
         connItem.onNotify(refresh);
+    }
+
+    let isUnsub = false;
+
+    return () => {
+        if (isUnsub !== false) {
+            return;
+        }
+
+        isUnsub = true;
+
+        for (const item of connections) {
+            item.disconnect();
+        }
     }
 };
