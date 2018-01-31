@@ -26,7 +26,7 @@ const isSSR = typeof window === 'undefined';
 let catchStack = [];
 const subs: Map<() => void, () => void> = new Map();
 
-export const disconnect = (refreshFunction: () => void) => {
+export const catchSubscriptionsDisconnect = (refreshFunction: () => void) => {
     const unsub = subs.get(refreshFunction);
 
     if (unsub) {
@@ -42,11 +42,11 @@ export const catchSubscriptions = (refreshFunction: () => void, toExec: () => vo
     const connections = catchStack.pop();
 
     const unsub = groupConnectionRefresh(connections, refreshFunction);
-    disconnect(refreshFunction);
+    catchSubscriptionsDisconnect(refreshFunction);
     subs.set(refreshFunction, unsub);
 };
 
-export const pushConnection = (connection: Connection<mixed>) => {
+export const catchSubscriptionsPush = (connection: Connection<mixed>) => {
     if (isSSR) {
         connection.disconnect();
     } else {
