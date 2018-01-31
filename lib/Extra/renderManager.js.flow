@@ -34,16 +34,18 @@ export const catchSubscriptionsDisconnect = (refreshFunction: () => void) => {
     }
 };
 
-export const catchSubscriptions = (refreshFunction: () => void, toExec: () => void) => {
+export const catchSubscriptions = (refreshFunction: () => void, toExec: () => mixed) => {
     catchStack.push([]);
 
-    toExec();
+    const resultExec = toExec();
 
     const connections = catchStack.pop();
 
     const unsub = groupConnectionRefresh(connections, refreshFunction);
     catchSubscriptionsDisconnect(refreshFunction);
     subs.set(refreshFunction, unsub);
+
+    return resultExec;
 };
 
 export const catchSubscriptionsPush = (connection: Connection<mixed>) => {
