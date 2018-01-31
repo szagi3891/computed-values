@@ -24,7 +24,7 @@ export const combine = <A,R>(
             return {
                 subscription: new Subscription(),
                 connections: connections,
-                result: new ResultValue(connections, combine)
+                result: new ResultValue(connections, combine, null)
             };
         },
         drop: (stateInner) => {

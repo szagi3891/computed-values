@@ -6,9 +6,10 @@ import { pushToRefresh } from '../transaction';
 import { Value } from '../Value';
 import { Box } from '../Utils/Box';
 
-import { map } from './Operator.Map';
-import { switchMap } from './Operator.SwitchMap';
-import { combine } from './Operator.Combine';
+import { map } from './Map';
+import { switchMap } from './SwitchMap';
+import { combine } from './Combine';
+import { DistinctUntilChanged } from './DistinctUntilChanged';
 
 const combineArray = <A,R>(
     arr: Array<Computed<A>>,
@@ -44,7 +45,7 @@ export class Computed<T> {
     }
 
     /*
-    switch<T: Computed<K>>(): Computed<K> { ---> T przy założeniu że T to Computed<K>
+    switch<T: Computed<K>>(): Computed<K> { ---> Where T: Computed<K>
         const [getValueSubscription, getResult] = switchMap(
             () => this.bind(),
             (value: T) => value.bind()
@@ -73,10 +74,18 @@ export class Computed<T> {
         return new Value(value).asComputed();
     }
 
-    distinctUntilChanged(): Computed<T> {
-        return this;
+    distinctUntilChanged(comare?: (arg1: T, arg2: T) => bool): Computed<T> {
+        const isEqual = comare ? comare : null;
 
-        //TODO - do zaimplementowania
+        const [getValueSubscription, getResult] = DistinctUntilChanged(
+            () => this.bind(),
+            isEqual
+        );
+
+        return new Computed(
+            getValueSubscription,
+            getResult
+        );
     }
 
     static combine<A, B, R>(

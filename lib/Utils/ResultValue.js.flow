@@ -2,16 +2,24 @@
 import { Connection } from '../Connection';
 import { Box } from '../Utils/Box';
 
+type FuncIsEqualType<T> = (arg1: T, arg2: T) => bool;
+
 export class ResultValue<T, R> {
     _connection: Array<Connection<T>>;
     _mapFun: (value: Array<T>) => R;
+    _isEqual: null | FuncIsEqualType<R>;
     _args: Array<Box<T>>;
     _result: Box<R>;
     _isValid: bool;
 
-    constructor(connection: Array<Connection<T>>, mapFun: (value: Array<T>) => R) {
+    constructor(
+        connection: Array<Connection<T>>,
+        mapFun: (value: Array<T>) => R,
+        isEqual: null | FuncIsEqualType<R>,
+    ) {
         this._connection = connection;
         this._mapFun = mapFun;
+        this._isEqual = isEqual;
 
         const args = this._getArgs();
         const result = this._getResult(args);
@@ -32,7 +40,20 @@ export class ResultValue<T, R> {
     }
 
     _argsEq<K>(argsPrev: Array<Box<K>>, argsNext: Array<Box<K>>): bool {
-        return argsPrev === argsNext;
+        if (argsPrev.length !== argsNext.length) {
+            return false;
+        }
+
+        const max = argsPrev.length;
+        for (let i = 0; i < max; i++) {
+            const prevItem = argsPrev[i];
+            const nextItem = argsNext[i];
+            if (prevItem !== nextItem) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     setAsNotValid() {
@@ -51,6 +72,12 @@ export class ResultValue<T, R> {
         }
 
         const result = this._getResult(newArgs);
+        
+        const isEqual = this._isEqual;
+        if (isEqual && isEqual(this._result.getValue(), result.getValue())) {
+            this._isValid = true;
+            return this._result;
+        }
 
         this._isValid = true;
         this._args = newArgs;

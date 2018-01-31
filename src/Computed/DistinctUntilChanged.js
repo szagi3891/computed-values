@@ -6,24 +6,28 @@ import { ValueLayzy } from '../Utils/ValueLayzy';
 import { Box } from '../Utils/Box';
 import { ResultValue } from '../Utils/ResultValue';
 
-export const map = <T, R>(
+type FuncIsEqualType<T> = (arg1: T, arg2: T) => bool;
+
+const defaultIsEqual = <T>(arg1: T, arg2: T): bool => arg1 === arg2;
+
+export const DistinctUntilChanged = <T>(
     parentBind: () => Connection<T>,
-    mapFun: (value: T) => R
-): [() => Subscription, () => Box<R>] => {
+    isEqual: null | FuncIsEqualType<T>
+): [() => Subscription, () => Box<T>] => {
 
     type InnerType = {
         subscription: Subscription,
         connection: Connection<T>,
-        result: ResultValue<T, R>,
+        result: ResultValue<T, T>,
     };
 
     const state: ValueLayzy<InnerType> = new ValueLayzy({
         create: () => {
             const connection = parentBind();
 
-            const result: ResultValue<T, R> = new ResultValue([connection], (arg: Array<T>): R => {
-                return mapFun(arg[0]);
-            });
+            const getResult = (arg: Array<T>): T => arg[0];
+            const resultIsEqual = isEqual === null ? defaultIsEqual : isEqual;
+            const result: ResultValue<T, T> = new ResultValue([connection], getResult, resultIsEqual);
 
             return ({
                 subscription: new Subscription(),
@@ -46,6 +50,6 @@ export const map = <T, R>(
 
     return [
         (): Subscription => state.getValue().subscription,
-        (): Box<R> => state.getValue().result.getResult()
+        (): Box<T> => state.getValue().result.getResult()
     ];
 };
