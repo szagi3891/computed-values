@@ -5,7 +5,7 @@ import { Connection } from '../Connection';
 import { pushToRefresh } from '../transaction';
 import { Value } from '../Value';
 import { Box } from '../Utils/Box';
-import { pushConnection } from '../Extra/renderManager';
+import { catchSubscriptionsPush } from '../Extra/renderManager';
 
 import { map } from './Map';
 import { switchMap } from './SwitchMap';
@@ -133,7 +133,7 @@ export class Computed<T> {
         const connection = self.bind();
         const value = connection.getValue();
     
-        pushConnection(connection);
+        catchSubscriptionsPush(connection);
 
         return value;
     }
