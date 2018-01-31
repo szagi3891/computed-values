@@ -74,8 +74,8 @@ export class Computed<T> {
         return new Value(value).asComputed();
     }
 
-    distinctUntilChanged(comare?: (arg1: T, arg2: T) => bool): Computed<T> {
-        const isEqual = comare ? comare : null;
+    distinctUntilChanged(compare?: (arg1: T, arg2: T) => bool): Computed<T> {
+        const isEqual = compare ? compare : null;
 
         const [getValueSubscription, getResult] = DistinctUntilChanged(
             () => this.bind(),
@@ -86,6 +86,13 @@ export class Computed<T> {
             getValueSubscription,
             getResult
         );
+    }
+
+    select<K>(
+        mapFun: (value: T) => K,
+        compare?: (arg1: K, arg2: K) => bool
+    ): Computed<K> {
+        return this.map(mapFun).distinctUntilChanged(compare);
     }
 
     static combine<A, B, R>(
