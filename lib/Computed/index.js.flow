@@ -130,9 +130,10 @@ export class Computed<T> {
     }
 
     value(): T {
-        const connection = self.bind();
+        const connection = this.bind();
         const value = connection.getValue();
     
+        //$FlowFixMe
         catchSubscriptionsPush(connection);
 
         return value;
