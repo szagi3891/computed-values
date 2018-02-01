@@ -1,6 +1,6 @@
-export const ReactDecorator = (defComponent) => {
+export const ReactDecorator = (ReactComponent) => {
     return (...args) => {
-        const inst = new decoratedComponent(...args);
+        const inst = new ReactComponent(...args);
 
         const refresh = () => {
             //Component.prototype.forceUpdate.call(inst);
