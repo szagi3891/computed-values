@@ -1,6 +1,6 @@
 {
   "name": "computed-values",
-  "version": "0.3.14",
+  "version": "0.3.15",
   "description": "Computed values",
   "main": "lib/index.js",
   "repository": "https://github.com/szagi3891/computed-values",

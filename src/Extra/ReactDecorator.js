@@ -1,3 +1,5 @@
+import { catchSubscriptionsDisconnect, catchSubscriptions } from './RenderManager';
+
 export const ReactDecorator = (ReactComponent) => {
     return (...args) => {
         const inst = new ReactComponent(...args);
