@@ -5,7 +5,7 @@ import { Connection } from '../Connection';
 import { pushToRefresh } from '../transaction';
 import { Value } from '../Value';
 import { Box } from '../Utils/Box';
-import { catchSubscriptionsPush } from '../Extra/renderManager';
+import { catchSubscriptionsPush } from '../Extra/RenderManager';
 
 import { map } from './Map';
 import { switchMap } from './SwitchMap';

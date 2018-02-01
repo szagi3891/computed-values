@@ -5,8 +5,7 @@ import { Computed } from './Computed';
 import { Connection } from './Connection';
 import { transaction } from './transaction';
 import { ValueDebounce } from './Extra/ValueDebounce';
-//import { groupConnectionRefresh } from './Extra/groupConnectionRefresh';
-import { catchSubscriptions, catchSubscriptionsDisconnect } from './Extra/renderManager';
+import { catchSubscriptions, catchSubscriptionsDisconnect } from './Extra/RenderManager';
 
 export {
     Value,
@@ -14,7 +13,6 @@ export {
     Connection,
     transaction,
     ValueDebounce,
-    //groupConnectionRefresh
     catchSubscriptions,
     catchSubscriptionsDisconnect
 };
