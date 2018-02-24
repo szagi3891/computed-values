@@ -1,0 +1,11 @@
+prawdopodobnie operator distincUntilChange jest niepotrzebny jeśli dla złożonych struktór danych zastosuje się niezmienny rekord z wartościami które są typu computed
+nie trzeba wtedy nic głęboko porównywać bo jest gwarancja że referencja nigdy się nie zmieni
+
+data {
+    title: Computed<string>,
+    name: Computed<string>,
+}
+
+
+dorobić żeby forceUpdate nie był uruchamiany dla odmontowanego komponentu
+

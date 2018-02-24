@@ -6,7 +6,11 @@ import { Connection } from './Connection';
 import { transaction } from './transaction';
 import { ValueDebounce } from './Extra/ValueDebounce';
 import { catchSubscriptions, catchSubscriptionsDisconnect } from './Extra/RenderManager';
-import { ReactDecorator } from './Extra/ReactDecorator';
+import type { PropsComputedInnerMap } from './Extra/PropsComputed';
+
+export type {
+    PropsComputedInnerMap
+};
 
 export {
     Value,
@@ -15,6 +19,5 @@ export {
     transaction,
     ValueDebounce,
     catchSubscriptions,
-    catchSubscriptionsDisconnect,
-    ReactDecorator
+    catchSubscriptionsDisconnect
 };
