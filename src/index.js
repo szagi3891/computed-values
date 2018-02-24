@@ -8,10 +8,6 @@ import { ValueDebounce } from './Extra/ValueDebounce';
 import { catchSubscriptions, catchSubscriptionsDisconnect } from './Extra/RenderManager';
 import { PropsComputedData, PropsComputed } from './Extra/PropsComputed';
 
-export type {
-    PropsComputedInnerMap
-};
-
 export {
     Value,
     Computed,
