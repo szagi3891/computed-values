@@ -7,6 +7,7 @@ import { transaction } from './transaction';
 import { ValueDebounce } from './Extra/ValueDebounce';
 import { catchSubscriptions, catchSubscriptionsDisconnect } from './Extra/RenderManager';
 import type { PropsComputedInnerMap } from './Extra/PropsComputed';
+import { PropsComputed } from './Extra/PropsComputed';
 
 export type {
     PropsComputedInnerMap
@@ -19,5 +20,6 @@ export {
     transaction,
     ValueDebounce,
     catchSubscriptions,
-    catchSubscriptionsDisconnect
+    catchSubscriptionsDisconnect,
+    PropsComputed
 };
