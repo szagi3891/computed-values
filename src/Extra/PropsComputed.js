@@ -8,7 +8,54 @@ type PropsItem = {
     computed: Computed<mixed>,
 };
 
-export type PropsComputedInnerMap = Map<string, PropsItem>;
+type PropsComputedInnerMap = Map<string, PropsItem>;
+
+const createItem = (): PropsItem => {
+    const newValue = new Value();
+    const newComputed = newValue.asComputed();
+    return {
+        value: newValue,
+        computed: newComputed
+    };
+};
+    
+const setValue = (item: PropsItem, newValue: mixed) => {
+    const oldValue = item.value.value();
+    if (oldValue !== newValue) {
+        item.value.setValue(newValue);
+    }
+};
+
+export class PropsComputedData<T: {}> {
+    _data: PropsComputedInnerMap;
+
+    constructor(data: PropsComputedInnerMap) {
+        this._data = data;
+    }
+
+    static build(): [PropsComputedData<T>, PropsComputed<T>] {
+        const map = new Map();
+        return [
+            new PropsComputedData(map),
+            new PropsComputed(map)
+        ];
+    }
+
+    setNewProps<T: {}>(props: T) {
+        transaction(() => {
+            for (const [key, value] of Object.entries(props)) {
+                const item = this._data.get(key);
+                if (item) {
+                    setValue(item, value);
+                } else {
+                    const newItem = createItem();
+                    setValue(newItem, value);
+                    this._data.set(key, newItem);
+                }
+            }
+        });
+    }
+}
 
 export class PropsComputed<T: {}> {
     _data: PropsComputedInnerMap;
@@ -23,7 +70,7 @@ export class PropsComputed<T: {}> {
             return item.computed;
         }
 
-        const newItem = PropsComputed.newItem();
+        const newItem = createItem();
         this._data.set(name, newItem);
 
         return newItem.computed;
@@ -32,35 +79,4 @@ export class PropsComputed<T: {}> {
     value<Key: string>(name: Key): $ElementType<T, Key> {
         return this.get(name).value();
     }
-
-    static newItem(): PropsItem {
-        const newValue = new Value();
-        const newComputed = newValue.asComputed();
-        return {
-            value: newValue,
-            computed: newComputed
-        }
-    }
-
-    static setNewProps<T: {}>(data: PropsComputedInnerMap, props: T) {
-        transaction(() => {
-            for (const [key, value] of Object.entries(props)) {
-                const item = data.get(key);
-                if (item) {
-                    PropsComputed.setValue(item, value);
-                } else {
-                    const newItem = PropsComputed.newItem();
-                    PropsComputed.setValue(newItem, value);
-                    data.set(key, newItem);
-                }
-            }
-        });
-    }
-    
-    static setValue(item: PropsItem, newValue: mixed) {
-        const oldValue = item.value.value();
-        if (oldValue !== newValue) {
-            item.value.setValue(newValue);
-        }
-    }    
 }
