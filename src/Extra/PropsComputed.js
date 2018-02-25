@@ -20,7 +20,7 @@ const createItem = (): PropsItem => {
 };
     
 const setValue = (item: PropsItem, newValue: mixed) => {
-    const oldValue = item.value.value();
+    const oldValue = item.value.getValueSnapshot();
     if (oldValue !== newValue) {
         item.value.setValue(newValue);
     }

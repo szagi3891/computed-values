@@ -46,7 +46,7 @@ export class Value<T> {
         return this._value;
     }
 
-    value(): T {
+    getValueSnapshot(): T {
         return this._value.getValue();
     }
 
