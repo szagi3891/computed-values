@@ -7,6 +7,7 @@ import { transaction } from './transaction';
 import { ValueDebounce } from './Extra/ValueDebounce';
 import { catchSubscriptions, catchSubscriptionsDisconnect } from './Extra/RenderManager';
 import { PropsComputedData, PropsComputed } from './Extra/PropsComputed';
+import { EventSource } from './Extra/EventSource';
 
 export {
     Value,
@@ -17,5 +18,6 @@ export {
     catchSubscriptions,
     catchSubscriptionsDisconnect,
     PropsComputedData,
-    PropsComputed
+    PropsComputed,
+    EventSource
 };
