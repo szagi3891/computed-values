@@ -8,10 +8,10 @@ import { Box } from '../Utils/Box';
 export const switchMap = <T, K>(
     bindSelf: () => Connection<T>,
     swithFunc: ((value: T) => Connection<K>)
-): [() => Subscription, () => Box<K>] => {
+): [() => Subscription<void>, () => Box<K>] => {
 
     type ConnectionDataType = {
-        subscription: Subscription,
+        subscription: Subscription<void>,
         self: Connection<T>,
         target: Connection<K>,
     };

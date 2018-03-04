@@ -13,10 +13,10 @@ const defaultIsEqual = <T>(arg1: T, arg2: T): bool => arg1 === arg2;
 export const DistinctUntilChanged = <T>(
     parentBind: () => Connection<T>,
     isEqual: null | FuncIsEqualType<T>
-): [() => Subscription, () => Box<T>] => {
+): [() => Subscription<void>, () => Box<T>] => {
 
     type InnerType = {
-        subscription: Subscription,
+        subscription: Subscription<void>,
         connection: Connection<T>,
         result: ResultValue<T, T>,
     };
@@ -49,7 +49,7 @@ export const DistinctUntilChanged = <T>(
     });
 
     return [
-        (): Subscription => state.getValue().subscription,
+        (): Subscription<void> => state.getValue().subscription,
         (): Box<T> => state.getValue().result.getResult()
     ];
 };

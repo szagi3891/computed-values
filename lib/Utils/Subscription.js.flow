@@ -2,8 +2,8 @@
 import { transaction } from '../transaction';
 import { EventEmitter } from './EventEmitter';
 
-export class Subscription {
-    _subscription: EventEmitter<void>;
+export class Subscription<T> {
+    _subscription: EventEmitter<T>;
     _up: EventEmitter<void>;
     _down: EventEmitter<void>;
 
@@ -13,9 +13,9 @@ export class Subscription {
         this._down = new EventEmitter();
     }
 
-    notify() {
+    notify(param: T) {
         transaction(() => {
-            this._subscription.emit();
+            this._subscription.emit(param);
         });
     }
 
@@ -31,7 +31,7 @@ export class Subscription {
         this._down.remove(callback);
     }
 
-    bind(notify: () => void): () => void {
+    bind(notify: (param: T) => void): () => void {
         const unsubscribeNotify = this._subscription.on(notify);
 
         if (this._subscription.count() === 1) {

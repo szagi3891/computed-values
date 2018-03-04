@@ -10,7 +10,7 @@ export class Connection<T> {
     _disconnect: () => void;
 
     constructor(
-        subscription: Subscription,
+        subscription: Subscription<void>,
         getValue: () => Box<T>,
     ) {
         this._connect = true;

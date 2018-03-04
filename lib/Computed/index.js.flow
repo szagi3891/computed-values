@@ -28,10 +28,10 @@ const combineArray = <A,R>(
 }
 
 export class Computed<T> {
-    _getSubscription: () => Subscription;
+    _getSubscription: () => Subscription<void>;
     _getValue: () => Box<T>;
 
-    constructor(getSubscription: () => Subscription, getValue: () => Box<T>) {
+    constructor(getSubscription: () => Subscription<void>, getValue: () => Box<T>) {
         this._getSubscription = getSubscription;
         this._getValue = getValue;
     }

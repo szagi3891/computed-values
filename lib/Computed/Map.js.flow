@@ -9,10 +9,10 @@ import { ResultValue } from '../Utils/ResultValue';
 export const map = <T, R>(
     parentBind: () => Connection<T>,
     mapFun: (value: T) => R
-): [() => Subscription, () => Box<R>] => {
+): [() => Subscription<void>, () => Box<R>] => {
 
     type InnerType = {
-        subscription: Subscription,
+        subscription: Subscription<void>,
         connection: Connection<T>,
         result: ResultValue<T, R>,
     };
@@ -44,7 +44,7 @@ export const map = <T, R>(
     });
 
     return [
-        (): Subscription => state.getValue().subscription,
+        (): Subscription<void> => state.getValue().subscription,
         (): Box<R> => state.getValue().result.getResult()
     ];
 };

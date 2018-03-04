@@ -9,7 +9,7 @@ type FuncConnectType<T> = (funcConnect: ((setValue: T) => void)) => (() => void)
 
 export class Value<T> {
     _value: Box<T>;
-    _subscription: Subscription;
+    _subscription: Subscription<void>;
 
     constructor(value: T, funcConnect?: FuncConnectType<T>) {
         this._value = new Box(value);

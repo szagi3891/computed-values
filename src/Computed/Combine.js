@@ -9,10 +9,10 @@ import { ResultValue } from '../Utils/ResultValue';
 export const combine = <A,R>(
     bindArr: Array<() => Connection<A>>,
     combine: ((arr: Array<A>) => R)
-): [() => Subscription, () => Box<R>] => {
+): [() => Subscription<void>, () => Box<R>] => {
 
     type ConnectionDataType = {
-        subscription: Subscription,
+        subscription: Subscription<void>,
         connections: Array<Connection<A>>,
         result: ResultValue<A, R>
     };
