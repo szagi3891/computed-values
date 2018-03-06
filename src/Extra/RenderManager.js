@@ -53,7 +53,7 @@ const groupConnectionRefresh = (connections: Array<Connection<mixed>>, onRefresh
     };
 
     const refresh = () => {
-        if (shouldRefresh()) {
+        if (subs.has(onRefresh) &&  shouldRefresh()) {
             onRefresh();
         }
     };
